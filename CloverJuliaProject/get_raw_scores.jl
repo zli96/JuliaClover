@@ -26,12 +26,16 @@ results = Array{result, 1}(undef, length(doubleStrandMotifs))
 motnum= 1 #temp
 seqnum= 1 #temp
 hit_thresh=6 #temp
+tot_score=0
 
-print("length of ds: ", length(doubleStrandMotifs))
-for m in 1:length(doubleStrandMotifs)
-    for s in 1:length(sequence)
-        results[m] = result(0,Float64(0),[0.0],[0.0])
-        results[m].seq_scores = vcat(results[m].seq_scores, scan_seq(sequence[s], doubleStrandMotifs[m], base_probs, seqnum, motnum, hit_thresh))
-        results[m].raw_score = combine_scores(results[m].seq_scores)
-    end
-end
+base_probs=[0.3 0.1 0.5 0.1]
+tot_score=scan_seq(sequence[1], doubleStrandMotifs[1], base_probs, seqnum, motnum, hit_thresh)
+print("tot_score:", tot_score,"\n")
+
+#for m in 1:length(doubleStrandMotifs)
+#   for s in 1:length(sequence)
+#        results[m] = result(0,Float64(0),[0.0],[0.0])
+#        results[m].seq_scores = vcat(results[m].seq_scores, scan_seq(sequence[s], doubleStrandMotifs[m], base_probs, seqnum, motnum, hit_thresh))
+#        results[m].raw_score = combine_scores(results[m].seq_scores)
+#   end
+#end

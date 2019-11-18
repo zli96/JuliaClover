@@ -1,24 +1,24 @@
-#struct hit
-#    motif #index of motif
-#    strand #0 or 1: palindromes??
-#    location
-#    score
-#end
+struct hit
+    motif #index of motif
+    strand #0 or 1: palindromes??
+    location
+    score
+end
 
 function scan_seq(seq, motif, b_probs, seqnum, motnum, hit_thresh)
     tot_score=0
 
-    m_max=convert(Int64,size(motif)[1]/4)
+    m_max=Int64(length(motif)) #m_max is the num of motifs
     for m in 1:m_max
-        pssm = zeros(Float64, (size(motif)[2], 4))#size(motif)[2] is row num
-        row_max = convert(Int64,size(motif)[2])
+        pssm = zeros(Float64, (length(motif[1]), 4))#size(motif)[2] is row num
+        row_max = Int64(length(motif[1]))
         for row in 1:row_max
             for col in 1:4
-                pssm[row,col] = motif[row+4*(m-1),col]
+                pssm[row,col] = motif[m][row][col]
             end
         end
 
-        if(size(pssm)[2] > length(seq))
+        if(row_max > length(seq))
             continue
         end
 
@@ -54,6 +54,6 @@ function scan_seq(seq, motif, b_probs, seqnum, motnum, hit_thresh)
 
     end
 
-    print(tot_score)
+
    return tot_score
 end
