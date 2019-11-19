@@ -142,7 +142,6 @@ mutable struct seq_set_info
     end
 end
 
-<<<<<<< HEAD
 function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
     b = 1 #select which bg seq
     r = rand(1:frag_tot)
@@ -173,8 +172,6 @@ function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
     return
 end
 
-=======
->>>>>>> 3d884fb068a3843532576ce2517f49e206d2e774
 function shuffle_bgseq(seqs,bg_seqs,ds_motifs)
     fragnums = Array{Int64}[]
     for i = 1:length(seqs)
