@@ -92,34 +92,36 @@ end
 mutable struct result
     motif_index::Int64
     raw_score::Float64
-    pvalues::Array{Float64,1}
-    seq_scores::Array{Float64,1}
-    function greaterThan(r)
-        return raw_score > r.raw_score
-    end
+    pvalues::Array{Float64, 1}
+    seq_scores::Array{Float64, 1}
+end
+function greaterThan(r1, r2)
+    return r1.raw_score > r2.raw_score
 end
 
-mutable struct seq_set_info
+mutable struct seq_info
     num::Int64
     len::Int64
     gc::Float64
-    function seq_set_info(seqs)
-        len=0
-        for s = 1:length(seqs)
-            len=len+length(seqs[s])
-        end
-        counts=[]
-        print("\nseqs length ",length(seqs))
-        for s = 1:length(seqs)
-            #print("signature",seqs[s], counts, alphsize)
-            counts=count_residues(seqs[s], counts, alphsize)
-        end
-        tot=0
-        for x in counts
-            tot=tot+x
-        end
-        gc = (counts[2]+counts[3])/tot
+end
+function init_seq_info(seqs)
+    num = length(seqs)
+    len=0
+    for s = 1:num
+        len=len+length(seqs[s])
     end
+    counts=[]
+    print("\nseqs length ",length(seqs))
+    for s = 1:length(seqs)
+        #print("signature",seqs[s], counts, alphsize)
+        counts=count_residues(seqs[s], counts, alphsize)
+    end
+    tot=0
+    for x in counts
+        tot=tot+x
+    end
+    gc = (counts[2]+counts[3])/tot
+    return seq_info(num, len, gc)
 end
 
 function shuffle_bgseq(seqs,bg_seqs,ds_motifs)

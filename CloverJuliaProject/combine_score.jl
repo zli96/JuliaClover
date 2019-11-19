@@ -1,6 +1,6 @@
 
 using Statistics
-function Combine_Score(scores)
+function combine_score(scores)
     combinationScores = []
     n = length(scores)
     for i in 1:n # get combined score for the scenario where the motif appear in i sequences

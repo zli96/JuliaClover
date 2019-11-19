@@ -55,5 +55,5 @@ function scan_seq(seq, motif, b_probs, seqnum, motnum, hit_thresh)
     end
 
 
-   return tot_score
+   return convert(Float64, tot_score)
 end
