@@ -76,7 +76,7 @@ function get_base_probs(seq, probs)
         #print("signature",seqs[s], counts, alphsize)
         counts=count_residues(seq[s], counts, alphsize)
     end
-    print("counts",counts)
+    print("\ncounts ",counts)
     tot=0
     for x in counts
         tot=tot+x
@@ -84,6 +84,7 @@ function get_base_probs(seq, probs)
     for i = 1:alphsize
         probs=vcat(probs,counts[i]/tot)
     end
+    return probs
 end
 
 #dp=Array{Float64}(undef,length(s[1])+1)  # INit dp line
@@ -95,12 +96,6 @@ mutable struct result
     seq_scores::Array{Float64,1}
     function greaterThan(r)
         return raw_score > r.raw_score
-    end
-    function result(a,b,c,d)
-        motif_index=a
-        raw_score=b
-        pvalues=c
-        seq_scores=d
     end
 end
 
@@ -114,7 +109,7 @@ mutable struct seq_set_info
             len=len+length(seqs[s])
         end
         counts=[]
-        print("seqs length",length(seqs))
+        print("\nseqs length ",length(seqs))
         for s = 1:length(seqs)
             #print("signature",seqs[s], counts, alphsize)
             counts=count_residues(seqs[s], counts, alphsize)
@@ -127,7 +122,7 @@ mutable struct seq_set_info
     end
 end
 
-function shuffle_bgseq(bg_seqs)
+function shuffle_bgseq(seqs,bg_seqs,ds_motifs)
     fragnums = Array{Int64}[]
     for i = 1:length(seqs)
         t=Array{Int64}
@@ -155,10 +150,11 @@ function shuffle_bgseq(bg_seqs)
         if tot==0
             print("Die function : Can't get fragments of control sequences to match all target sequences.")
         end
-        frag_tots(tot)
+        frag_tots = vcat(frag_tots,tot)
     end
 
     losses = Array{Int64}(0,length(ds_motifs))
+    pvalues = Array{Float64}(0,length(ds_motifs))
     shuffles = 1000
     for r = 1:shuffles
         r_seqs = Array{Int64}[]
@@ -172,7 +168,7 @@ function shuffle_bgseq(bg_seqs)
     end
 
     for m = 1:length(ds_motifs)
-        results[m].pvalues=vcat(results[m].pvalues,losses[m]/shuffles)
+        pvalues[m]=vcat(pvalues[m],losses[m]/shuffles)
     end
 
 end
@@ -196,7 +192,7 @@ function is_significant(r)
     return true
 end
 
-function get_hits()
+function get_hits(seqs,ds_motifs,base_probs)
     resize!(hits,length(seqs))
     for m = 1:length(ds_motifs)
         if is_significant(results[m])
