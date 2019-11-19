@@ -48,6 +48,9 @@ print("\nRaw score ", raw_sco)
 
 bg_info=[]
 bg_seqs=[]
+junk=[]
+(bg_seqs, junk) = get_seqs("bg_seqs.txt", bg_seqs, junk)
+bg_info = vcat(bg_info,seq_set_info(bg_seqs))
+p_vals=shuffle_bgseq(sequence,bg_seqs,doubleStrandMotifs)
 
-
-get_hits(sequence,doubleStrandMotifs,base_probs)
+# get_hits(sequence,doubleStrandMotifs,base_probs,p_vals)

@@ -123,42 +123,49 @@ mutable struct seq_set_info
 end
 
 function shuffle_bgseq(seqs,bg_seqs,ds_motifs)
-    fragnums = Array{Int64}[]
+    frag_nums = []
     for i = 1:length(seqs)
-        t=Array{Int64}
-        fragnums=vcat(fragnums,t)
+        t=[]
+
         for j = 1:length(bg_seqs)
             frags=0
             r=0
-            for x in j
-                if x==alphsize
+            for x in 1:length(bg_seqs[j])
+                # global frag_nums
+                if bg_seqs[j][x]==alphsize
                     r=0
-                elseif r+1>length(seq[i])
-                    frags=frags+1
+                else
+                    r=r+1
+                    if r>length(seqs[i])
+                        frags=frags+1
+                    end
                 end
-                frag_nums=vcat(frag_nums,frags)
+                t=vcat(t,frags)
             end
+            push!(frag_nums,t)
         end
-    end
 
-    frag_tots = Array{Int64}
-    for x in frag_nums
+    end
+    # frag_nums = reshape(frag_nums,(length(seqs),length(bg_seqs)))
+    print("\nfragnums",frag_nums)
+    frag_tots = []
+    for x in 1:length(frag_nums)
         tot=0
-        for y in x
-            tot=tot+y
+        for y in 1:length(frag_nums[x])
+            tot=tot+frag_nums[x][y]
         end
         if tot==0
-            print("Die function : Can't get fragments of control sequences to match all target sequences.")
+            print("\nDie function : Can't get fragments of control sequences to match all target sequences.")
         end
-        frag_tots = vcat(frag_tots,tot)
+        push!(frag_tots,tot)
     end
-
-    losses = Array{Int64}(0,length(ds_motifs))
-    pvalues = Array{Float64}(0,length(ds_motifs))
+    print("\nfrag tots",frag_tots)
+    losses = []#Vector{Int64}(0,length(ds_motifs))
+    pvalues = []#Vector{Float64}(0,length(ds_motifs))
     shuffles = 1000
     for r = 1:shuffles
-        r_seqs = Array{Int64}[]
-        b_probs = Array{Float64}[]
+        r_seqs = []#Vector{Int64}
+        b_probs = []#Vector{Float64}
         for s = 1:length(seqs)
             bg_fragment(bg_seqs, r_seqs[s], length(seqs[s]), frag_nums[s], frag_tots[s])
             copy_masks(seqs[s], r_seqs[s])
@@ -170,7 +177,7 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs)
     for m = 1:length(ds_motifs)
         pvalues[m]=vcat(pvalues[m],losses[m]/shuffles)
     end
-
+    return pvalues
 end
 
 mutable struct hit_something
@@ -192,7 +199,7 @@ function is_significant(r)
     return true
 end
 
-function get_hits(seqs,ds_motifs,base_probs)
+function get_hits(seqs,ds_motifs,base_probs,results)
     resize!(hits,length(seqs))
     for m = 1:length(ds_motifs)
         if is_significant(results[m])
