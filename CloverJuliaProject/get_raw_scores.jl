@@ -14,27 +14,40 @@ sequence = []
 #print(length(sequence))
 seq_info = seq_set_info(sequence)
 base_probs = Vector{Float64}()
-get_base_probs(sequence, base_probs)
+base_probs = get_base_probs(sequence, base_probs)
 
 dp=Array{Float64}(undef,length(sequence[1])+1)
 
 #p_value_temp = Array{Float64}(undef,1)
 #seq_scores_temp = Array{Float64}(undef,1)
-#temp_result = result()
-#print(temp_result)
-results = Array{result, 1}(undef, length(doubleStrandMotifs))
-
+# temp_result = result(0,0.0,[],[])
+results = []#Array{result,1}(undef,length(doubleStrandMotifs))
+# print(methods(result))
 motnum= 1 #temp
 seqnum= 1 #temp
 hit_thresh=6 #temp
-base_probs=[0.3 0.1 0.5 0.1]
-tot_score=scan_seq(sequence[1], doubleStrandMotifs[1], base_probs, seqnum, motnum, hit_thresh)
-print("tot_score:", tot_score,"\n")
 
-#for m in 1:length(doubleStrandMotifs)
-#   for s in 1:length(sequence)
-#        results[m] = result(0,Float64(0),[0.0],[0.0])
-#        results[m].seq_scores = vcat(results[m].seq_scores, scan_seq(sequence[s], doubleStrandMotifs[m], base_probs, seqnum, motnum, hit_thresh))
-#        results[m].raw_score = combine_scores(results[m].seq_scores)
-#   end
-#end
+seq_sco = []
+raw_sco = []
+
+print("\nlength of ds: ", length(doubleStrandMotifs))
+for m in 1:length(doubleStrandMotifs)
+    global raw_sco, temp_result, results
+    # results = vcat(results,temp_result)
+    # print(temp_result.motif_index)
+    for s in 1:length(sequence)
+        global seq_sco
+        seq_sco = vcat(seq_sco, scan_seq(sequence[s], doubleStrandMotifs[m], base_probs, seqnum, motnum, hit_thresh))
+    end
+    raw_sco = vcat(raw_sco,Combine_Score(seq_sco[m]))
+end
+
+seq_sco = reshape(seq_sco,(length(doubleStrandMotifs),length(sequence)))
+print("\nSequence score ", seq_sco)
+print("\nRaw score ", raw_sco)
+
+bg_info=[]
+bg_seqs=[]
+
+
+get_hits(sequence,doubleStrandMotifs,base_probs)

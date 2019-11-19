@@ -104,6 +104,7 @@ function get_base_probs(seq, probs)
     for i = 1:alphsize
         probs=vcat(probs,counts[i]/tot)
     end
+    return probs
 end
 
 #dp=Array{Float64}(undef,length(s[1])+1)  # INit dp line
@@ -115,12 +116,6 @@ mutable struct result
     seq_scores::Array{Float64,1}
     function greaterThan(r)
         return raw_score > r.raw_score
-    end
-    function result(a,b,c,d)
-        motif_index=a
-        raw_score=b
-        pvalues=c
-        seq_scores=d
     end
 end
 
@@ -134,7 +129,7 @@ mutable struct seq_set_info
             len=len+length(seqs[s])
         end
         counts=[]
-        print("seqs length",length(seqs))
+        print("\nseqs length ",length(seqs))
         for s = 1:length(seqs)
             #print("signature",seqs[s], counts, alphsize)
             counts=count_residues(seqs[s], counts, alphsize)
@@ -147,6 +142,7 @@ mutable struct seq_set_info
     end
 end
 
+<<<<<<< HEAD
 function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
     b = 1 #select which bg seq
     r = rand(1:frag_tot)
@@ -177,6 +173,8 @@ function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
     return
 end
 
+=======
+>>>>>>> 3d884fb068a3843532576ce2517f49e206d2e774
 function shuffle_bgseq(seqs,bg_seqs,ds_motifs)
     fragnums = Array{Int64}[]
     for i = 1:length(seqs)
@@ -247,7 +245,7 @@ function is_significant(r)
     return true
 end
 
-function get_hits()
+function get_hits(seqs,ds_motifs,base_probs)
     resize!(hits,length(seqs))
     for m = 1:length(ds_motifs)
         if is_significant(results[m])
