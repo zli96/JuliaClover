@@ -21,7 +21,7 @@ function scan_seq(seq, motif, b_probs, seqnum, motnum, hit_thresh)
         if(row_max > length(seq))
             continue
         end
-
+        
         for r in 1:row_max
             for c in 1:4
                 pssm[r,c] /= b_probs[c]
@@ -55,5 +55,5 @@ function scan_seq(seq, motif, b_probs, seqnum, motnum, hit_thresh)
     end
 
 
-   return convert(Float64, tot_score)
+   return convert(Float64, tot_score), hits
 end

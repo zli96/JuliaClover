@@ -55,7 +55,7 @@ end
 #end
 
 alphsize=4
-
+pthresh = 0.01
 function count_residues(seq, counts, alphsize)
     if(length(counts)<alphsize)
         counts = [0,0,0,0]
@@ -74,15 +74,18 @@ function rand_test(myseqs, b_probs, motifs, losses)
     for m in 1:length(motifs)
         scores = Vector{Float64}()
         for s in 1:length(myseqs)
-            push!(scores,scan_seq(myseqs[s], motifs[m], b_probs[s]))
+            a,b = scan_seq(myseqs[s], motifs[m], b_probs[s], 1, 1, 6)
+            push!(scores,a)
         end
-        raw = combine_scores(scores)
+        raw = combine_score(scores)
         if (raw >= results[m].raw_score)#notes:no result[m]
           losses[m]+=1;
+      end
     end
+    return losses
 end
 
-function copy_mask(source, dest)
+function copy_masks(source, dest)
     for i in 1:length(source)
         if(source[i]==UInt8(4))
             dest[i] = UInt8(4)
@@ -147,7 +150,7 @@ end
 function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
     b = 1 #select which bg seq
     r = rand(1:frag_tot)
-    for b in 1:length(bg_seq)
+    for b in 1:length(bg_seqs)
         if(frag_num[b]>r)
             break
         end
@@ -162,19 +165,19 @@ function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
     posns = length(bg_seqs[b]) - len + 1
 
     push!(p,bg_seqs[b][1]+rand(1:posns))
-    for p in p+len
-        if(bg_seqs[b][p]==UInt8(4)&& p!= p+len)
+    for i in 1:length(p)+len
+        if(bg_seqs[b][i]==UInt8(4)&& i!= length(p)+len)
             push!(p,bg_seqs[b][1]+rand(1:posns))
         end
     end
 
-    for i in 1:p
-        push!(frag,p+len)
+    for i in 1:length(p)
+        push!(frag,length(p)+len)
     end
     return
 end
 
-function shuffle_bgseq(seqs,bg_seqs,ds_motifs)
+function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
     frag_nums = []
     for i = 1:length(seqs)
         t=[]
@@ -212,36 +215,39 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs)
         push!(frag_tots,tot)
     end
     print("\nfrag tots",frag_tots)
-    losses = []#Vector{Int64}(0,length(ds_motifs))
+    losses = zeros(length(ds_motifs))
     pvalues = []#Vector{Float64}(0,length(ds_motifs))
     shuffles = 1000
     for r = 1:shuffles
         r_seqs = []#Vector{Int64}
         b_probs = []#Vector{Float64}
         for s = 1:length(seqs)
-            bg_fragment(bg_seqs, r_seqs[s], length(seqs[s]), frag_nums[s], frag_tots[s])
+            temp_seqs = []
+            temp_probs = []
+            bg_fragment(bg_seqs, temp_seqs, length(seqs[s]), frag_nums[s], frag_tots[s])
+            push!(r_seqs,temp_seqs)
             copy_masks(seqs[s], r_seqs[s])
-            get_base_probs(r_seqs[s], b_probs[s])
+            get_base_probs(r_seqs[s], temp_probs)
+            push!(b_probs,temp_probs)
         end
-        rand_test(r_seqs, b_probs, ds_motifs, losses)
+        losses = rand_test(r_seqs, b_probs, ds_motifs, losses)
     end
 
     for m = 1:length(ds_motifs)
-        pvalues[m]=vcat(pvalues[m],losses[m]/shuffles)
+        push!(results[m].pvalues,losses[m]/shuffles)
     end
-    return pvalues
+    # return pvalues
 end
 
-mutable struct hit_something
-    motif::Int64
-    strand::Int64
-    location::Int64
-    score::Float64
-    function lessThan(h)
-        return location<h.location
-    end
+# mutable struct hit
+#     motif::Int64
+#     strand::Int64
+#     location::Int64
+#     score::Float64
+# end
+function lessThan(h1, h2)
+    return h1.location < h2.location
 end
-
 function is_significant(r)
     for p = 1:length(r.pvalues)
         if (r.pvalues[p] > pthresh) && (r.pvalues[p] < 1-pthresh)
@@ -251,12 +257,12 @@ function is_significant(r)
     return true
 end
 
-function get_hits(seqs,ds_motifs,base_probs,results)
+function get_hits(seqs,ds_motifs,base_probs,results,hits)
     resize!(hits,length(seqs))
     for m = 1:length(ds_motifs)
         if is_significant(results[m])
             for s = 1:length(seqs)
-                scan_seq(seqs[s], ds_motifs[m], base_probs[s], s, m)
+                scan_seq(seqs[s], ds_motifs[m], base_probs, s, m, 6)
             end
         end
     end
@@ -268,7 +274,7 @@ for i = 1: length(bg_files)
     bg_seqs = Array{Int32}[]
     junk = Array{String}
     get_seqs(bg_files[i], bg_seqs, junk)
-    bg_info=vcat(bg_info,set_seq_info(bg_seqs))
+    bg_info=vcat(bg_info,init_seq_info(bg_seqs))
     shuffle_bgseq(bg_seqs)
 end
 # cts=[0,0,0,0]

@@ -29,11 +29,15 @@ motnum= 1 #temp
 seqnum= 1 #temp
 hit_thresh=6 #temp
 
+hits=[]
+
 print("\nlength of ds: ", length(doubleStrandMotifs))
 for m in 1:length(doubleStrandMotifs)
     sequenceScores = []
     for s in 1:length(sequence)
-        push!(sequenceScores, scan_seq(sequence[s], doubleStrandMotifs[m], base_probs, seqnum, motnum, hit_thresh))
+        (a,b) = scan_seq(sequence[s], doubleStrandMotifs[m], base_probs, seqnum, motnum, hit_thresh)
+        push!(sequenceScores, a)
+        push!(hits,b)
     end
     rawScore = combine_score(sequenceScores)
     results[m] = result(0, rawScore, [], sequenceScores)
@@ -42,7 +46,7 @@ bg_info=[]
 bg_seqs=[]
 junk=[]
 (bg_seqs, junk) = get_seqs("bg_seqs.txt", bg_seqs, junk)
-bg_info = vcat(bg_info,seq_set_info(bg_seqs))
-p_vals=shuffle_bgseq(sequence,bg_seqs,doubleStrandMotifs)
+bg_info = vcat(bg_info,init_seq_info(bg_seqs))
+p_vals=shuffle_bgseq(sequence,bg_seqs,doubleStrandMotifs,results)
 
-# get_hits(sequence,doubleStrandMotifs,base_probs,p_vals)
+get_hits(sequence,doubleStrandMotifs,base_probs,results,hits)
