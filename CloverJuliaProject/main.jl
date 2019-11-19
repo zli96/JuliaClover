@@ -70,6 +70,26 @@ function count_residues(seq, counts, alphsize)
     return counts
 end
 
+function rand_test(myseqs, b_probs, motifs, losses)
+    for m in 1:length(motifs)
+        scores = Vector{Float64}()
+        for s in 1:length(myseqs)
+            push!(scores,scan_seq(myseqs[s], motifs[m], b_probs[s]))
+        end
+        raw = combine_scores(scores)
+        if (raw >= results[m].raw_score)#notes:no result[m]
+          losses[m]+=1;
+    end
+end
+
+function copy_mask(source, dest)
+    for i in 1:length(source)
+        if(source[i]==UInt8(4))
+            dest[i] = UInt8(4)
+        end
+    end
+end
+
 function get_base_probs(seq, probs)
     counts=[]
     for s = 1:length(seq)
@@ -122,6 +142,36 @@ function init_seq_info(seqs)
     end
     gc = (counts[2]+counts[3])/tot
     return seq_info(num, len, gc)
+end
+
+function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
+    b = 1 #select which bg seq
+    r = rand(1:frag_tot)
+    for b in 1:length(bg_seq)
+        if(frag_num[b]>r)
+            break
+        end
+        r -= frag_num[b]
+    end
+
+    if(b == length(bg_seqs))
+        return
+    end
+
+    p =  Vector{UInt}()
+    posns = length(bg_seqs[b]) - len + 1
+
+    push!(p,bg_seqs[b][1]+rand(1:posns))
+    for p in p+len
+        if(bg_seqs[b][p]==UInt8(4)&& p!= p+len)
+            push!(p,bg_seqs[b][1]+rand(1:posns))
+        end
+    end
+
+    for i in 1:p
+        push!(frag,p+len)
+    end
+    return
 end
 
 function shuffle_bgseq(seqs,bg_seqs,ds_motifs)
