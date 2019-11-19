@@ -2,6 +2,7 @@ include("get_motifs.jl")
 include("get_seqs.jl")
 include("scan_seq.jl")
 include("main.jl")
+include("combine_score.jl")
 
 singleStrandMotifs = Get_Single_Strand_Motifs("test.txt")
 doubleStrandMotifs = Get_Double_Strand_Motifs(singleStrandMotifs, true)
