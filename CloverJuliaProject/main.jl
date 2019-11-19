@@ -177,7 +177,7 @@ function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
     return
 end
 
-function shuffle_bgseq(bg_seqs)
+function shuffle_bgseq(seqs,bg_seqs,ds_motifs)
     fragnums = Array{Int64}[]
     for i = 1:length(seqs)
         t=Array{Int64}
@@ -205,10 +205,11 @@ function shuffle_bgseq(bg_seqs)
         if tot==0
             print("Die function : Can't get fragments of control sequences to match all target sequences.")
         end
-        frag_tots(tot)
+        frag_tots = vcat(frag_tots,tot)
     end
 
     losses = Array{Int64}(0,length(ds_motifs))
+    pvalues = Array{Float64}(0,length(ds_motifs))
     shuffles = 1000
     for r = 1:shuffles
         r_seqs = Array{Int64}[]
@@ -222,7 +223,7 @@ function shuffle_bgseq(bg_seqs)
     end
 
     for m = 1:length(ds_motifs)
-        results[m].pvalues=vcat(results[m].pvalues,losses[m]/shuffles)
+        pvalues[m]=vcat(pvalues[m],losses[m]/shuffles)
     end
 
 end
