@@ -76,7 +76,7 @@ function get_base_probs(seq, probs)
         #print("signature",seqs[s], counts, alphsize)
         counts=count_residues(seq[s], counts, alphsize)
     end
-    print("\ncounts ",counts)
+    #print("counts",counts)
     tot=0
     for x in counts
         tot=tot+x

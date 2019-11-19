@@ -47,6 +47,7 @@ print("\nSequence score ", seq_sco)
 print("\nRaw score ", raw_sco)
 
 bg_info=[]
+bg_seqs=[]
 
 
 get_hits(sequence,doubleStrandMotifs,base_probs)
