@@ -39,10 +39,10 @@ function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thre
             end
             score += s
             if(log(2,s)>= hit_thresh)
-                println("hit:", Hit(motnum, m, n, s))
-                println("hit array at $seqnum: ", hitsInSequences[seqnum])
+                # println("hit:", Hit(motnum, m, n, s))
+                # println("hit array at $seqnum: ", hitsInSequences[seqnum])
                 push!(hitsInSequences[seqnum], Hit(motnum, m, n, s))#??
-                println("hit array at $seqnum: ", hitsInSequences[seqnum])
+                # println("hit array at $seqnum: ", hitsInSequences[seqnum])
             end
         end
 

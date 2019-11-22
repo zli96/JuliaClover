@@ -30,7 +30,7 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
     for i in 1:length(hitsInSequences)
         hitFrame = DataFrame(Motif = String[], Location = String[], Strand = String[], Sequence = String[], Score = Float64[])
         for j in 1:length(hitsInSequences[i])
-            hit = hitsInSequence[i][j]
+            hit = hitsInSequences[i][j]
             strand = ""
             if(hit.strand == 1)
                 strand = "+"
@@ -39,14 +39,14 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
             else
                 print("Something wrong here! hit#: $j, sequence#: $i")
             end
-            location = String("$(hit.location) - $(hit.location + motifWidth - 1)")
             motifWidth = length(singleStrandMotifs[hit.motif])
+            location = String("$(hit.location) - $(hit.location + motifWidth - 1)")
             motifString = ""
-            for w in 0:(motifWidth-1)
-                print(sequence[i][(hit.location + w)])
+            for w in 0:(motifWidth-2)
+                # println(length(sequence[i]),hit.location,w)
                 motifString = string(motifString, number_to_DNA(sequence[i][(hit.location + w)]))
             end
-            push!(hitFrame, [motifNames[hitsInSequencesp[i][j].motif], location, strand, motifString, log(hit.score)])
+            push!(hitFrame, [motifNames[hitsInSequences[i][j].motif], location, strand, motifString, log(hit.score)])
         end
     end
 end
@@ -96,15 +96,15 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
             temp_seqs = []
             temp_probs = []
             bg_fragment(bg_seqs, temp_seqs, length(seqs[s]), frag_nums[s], frag_tots[s])
-            print("length of temp_seqs: $(length(temp_seqs))")
-            print("temp_seqs: ", temp_seqs)
+            # print("length of temp_seqs: $(length(temp_seqs))")
+            # print("temp_seqs: ", temp_seqs)
             push!(r_seqs,temp_seqs)
             r_seqs[s] = copy_masks(seqs[s], r_seqs[s])
-            println("r_seq[$s]:", r_seqs[s])
+            # println("r_seq[$s]:", r_seqs[s])
             get_base_probs(r_seqs[s], temp_probs)
-            println(temp_probs)
+            # println(temp_probs)
             push!(b_probs,temp_probs)
-            println(b_probs)
+            # println(b_probs)
         end
         losses = rand_test(r_seqs, b_probs, ds_motifs, losses)
     end
@@ -120,8 +120,8 @@ function rand_test(myseqs, b_probs, motifs, losses)
         scores = Vector{Float64}()
         for s in 1:length(myseqs)
             #println(s, m)
-            #print( motifs[m], b_probs[s], hitsInSequences)
-            a,b = scan_seq(myseqs[s], motifs[m], b_probs[s], hitsInSequences, 1, 1, 6)
+            # print( myseqs[s],motifs[m], b_probs[s], hitsInSequences)
+            a = scan_seq(myseqs[s], motifs[m], b_probs[s], hitsInSequences, 1, 1, 6)
             push!(scores,a)
         end
         raw = combine_score(scores)
@@ -154,9 +154,7 @@ hitsInSequences = [Vector{Hit}() for i in 1:length(sequence)]
 for m in 1:length(doubleStrandMotifs)
     sequenceScores = []
     for s in 1:length(sequence)
-        println("!!!!!!!!!!!!!!!!!")
         a = scan_seq(sequence[s], doubleStrandMotifs[m], base_probs, hitsInSequences, s, motnum, hit_thresh)
-        println("??????????????????????")
         push!(sequenceScores, a)
     end
     rawScore = combine_score(sequenceScores)
