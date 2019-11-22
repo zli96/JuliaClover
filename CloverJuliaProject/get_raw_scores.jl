@@ -27,6 +27,7 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
     end
     display(summary)
 
+    println("*** Motif Instances with Score >= 6:")
     for i in 1:length(hitsInSequences)
         hitFrame = DataFrame(Motif = String[], Location = String[], Strand = String[], Sequence = String[], Score = Float64[])
         for j in 1:length(hitsInSequences[i])
@@ -39,15 +40,18 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
             else
                 print("Something wrong here! hit#: $j, sequence#: $i")
             end
+
             motifWidth = length(singleStrandMotifs[hit.motif])
             location = String("$(hit.location) - $(hit.location + motifWidth - 1)")
             motifString = ""
-            for w in 0:(motifWidth-2)
-                # println(length(sequence[i]),hit.location,w)
+            for w in 0:(motifWidth-1)
+                #print(sequence[i][(hit.location + w)])
                 motifString = string(motifString, number_to_DNA(sequence[i][(hit.location + w)]))
             end
             push!(hitFrame, [motifNames[hitsInSequences[i][j].motif], location, strand, motifString, log(hit.score)])
         end
+        println("*** sequence $i")
+        display(hitFrame)
     end
 end
 
@@ -130,6 +134,17 @@ function rand_test(myseqs, b_probs, motifs, losses)
       end
     end
     return losses
+end
+
+function get_hits(seqs,ds_motifs,base_probs,results,hits)
+    resize!(hits,length(seqs))
+    for m = 1:length(ds_motifs)
+        if is_significant(results[m])
+            for s = 1:length(seqs)
+                scan_seq(seqs[s], ds_motifs[m], base_probs, hitsInSequences, s, m, 6)
+            end
+        end
+    end
 end
 
 sequenceFileName = "fasta.txt"

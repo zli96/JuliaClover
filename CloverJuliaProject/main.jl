@@ -183,16 +183,7 @@ function is_significant(r)
     return true
 end
 
-function get_hits(seqs,ds_motifs,base_probs,results,hits)
-    resize!(hits,length(seqs))
-    for m = 1:length(ds_motifs)
-        if is_significant(results[m])
-            for s = 1:length(seqs)
-                scan_seq(seqs[s], ds_motifs[m], base_probs, s, m, 6)
-            end
-        end
-    end
-end
+
 
 # bg_info = Array{}
 bg_files=[]
