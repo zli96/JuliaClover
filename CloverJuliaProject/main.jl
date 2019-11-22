@@ -55,7 +55,7 @@ function count_residues(seq, counts, alphsize)
             counts[seq[x]+1] = counts[seq[x]+1] + 1
         end
     end
-    print("counts: ", counts)
+    #print("counts: ", counts)
     return counts
 end
 
@@ -73,15 +73,15 @@ end
 function get_base_probs(seq, probs)
     counts=[]
     for s = 1:length(seq)
-        print("get_base_probs: ", seq[s], counts, alphsize)
+        #print("get_base_probs: ", seq[s], counts, alphsize)
         counts=count_residues(seq[s], counts, alphsize)
     end
     tot=0
     for x in counts
         tot=tot+x
     end
-    println("counts: ", counts)
-    println("tot: ", tot)
+    #println("counts: ", counts)
+    #println("tot: ", tot)
     for i = 1:alphsize
         push!(probs, counts[i]/tot)
     end
@@ -164,16 +164,7 @@ function is_significant(r)
     return true
 end
 
-function get_hits(seqs,ds_motifs,base_probs,results,hits)
-    resize!(hits,length(seqs))
-    for m = 1:length(ds_motifs)
-        if is_significant(results[m])
-            for s = 1:length(seqs)
-                scan_seq(seqs[s], ds_motifs[m], base_probs, s, m, 6)
-            end
-        end
-    end
-end
+
 
 # bg_info = Array{}
 bg_files=[]
