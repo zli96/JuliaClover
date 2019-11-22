@@ -1,24 +1,24 @@
 function Get_Single_Strand_Motifs(fileName)
     ssPFMs = []
     currentPFM = []
-    motifTitles = []
+    motifNames = []
     open(fileName) do file
         title = ""
         while !eof(file)
             line = readline(file)
             if(line[1:1] == ">")
                 if(title == "")
-                    title = line
+                    title = line[2:length(line)]
                 end
                 #record what has been read so far
                 if(length(currentPFM) > 0)
-                    push!(motifTitles, title)
+                    push!(motifNames, title)
                     currentPFM = Normalize(currentPFM, 0.1)
                     push!(ssPFMs, currentPFM)
                     currentPFM = []
                 end
                 #update the current title after the old one is recorded
-                title = line
+                title = line[2:length(line)]
             elseif(line[1:1] == "#")
                 #do nothing since this line is comment
             else
@@ -32,16 +32,17 @@ function Get_Single_Strand_Motifs(fileName)
                     push!(currentPFM, row)
                 else
                     println(line)
-                    println("this line has $(length(counts)) elements")
+                    println("warning: this line has $(length(counts)) elements")
                 end
                 if(eof(file))
                     currentPFM = Normalize(currentPFM, 0.1)
                     push!(ssPFMs, currentPFM)
+                    push!(motifNames, title)
                 end
             end
         end
     end
-    return ssPFMs
+    return ssPFMs, motifNames
 end
 
 function Normalize(matrix, psuedoCount)

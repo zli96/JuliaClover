@@ -12,6 +12,21 @@ function DNA_to_number(c)
     end
 end
 
+function number_to_DNA(i)
+    if i == 0
+        return 'A'
+    elseif i == 1
+        return 'C'
+    elseif i == 2
+        return 'G'
+    elseif i == 3
+        return 'T'
+    else
+        println("invalid input")
+        return
+    end
+end
+
 function get_fasta(fil)
     open(fil) do file
     titles=[];title="";seqs=Array{UInt8}[];seq=[]
@@ -35,16 +50,6 @@ function get_fasta(fil)
     return seqs, titles
     end
 end
-
-#function get_seqs(seq_file, myseqs, seq_names)
-#    myseqs=Array{UInt8}[]
-#    seq_names=[]
-#    n=""
-#    (myseqs,n)=get_fasta(seq_file)
-#    seq_names=vcat(seq_names,n)
-#    print(myseqs,seq_names)
-#    discard=pop!(myseqs)
-#end
 
 function get_base_probs(seq, probs)
     counts=[]
