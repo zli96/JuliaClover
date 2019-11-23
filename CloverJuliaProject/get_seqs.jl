@@ -7,8 +7,8 @@ function DNA_to_number(c)
         return UInt8(2)
     elseif c=='t' || c=='T'
         return UInt8(3)
-    else
-        return UInt8(4)
+    #else
+        #return #UInt8(4)
     end
 end
 

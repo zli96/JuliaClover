@@ -1,16 +1,16 @@
-function DNA_to_number(c)
-    if c=='a' || c=='A'
-        return UInt8(0)
-    elseif c=='c' || c=='C'
-        return UInt8(1)
-    elseif c=='g' || c=='G'
-        return UInt8(2)
-    elseif c=='t' || c=='T'
-        return UInt8(3)
-    else
-        return UInt8(4)
-    end
-end
+#function DNA_to_number(c)
+#    if c=='a' || c=='A'
+#        return UInt8(0)
+#    elseif c=='c' || c=='C'
+#        return UInt8(1)
+#    elseif c=='g' || c=='G'
+#        return UInt8(2)
+#    elseif c=='t' || c=='T'
+#        return UInt8(3)
+#    else
+#        return UInt8(4)
+#    end
+#end
 
 function get_fasta(fil)
     open(fil) do file
@@ -26,7 +26,9 @@ function get_fasta(fil)
                 print("Comment ignored")
             else
                 for x in s
-                    append!(seq,DNA_to_number(x))
+                    if(DNA_to_number(x) != nothing)
+                        append!(seq,DNA_to_number(x))
+                    end
                 end
             end
         end
@@ -47,7 +49,7 @@ end
 alphsize=4
 pthresh = 0.01
 function count_residues(seq, counts, alphsize)
-    if(length(counts) < alphsize)
+    if(counts == nothing || length(counts) < alphsize )
         counts = [0,0,0,0]
     end
     for x = 1:length(seq)
@@ -55,7 +57,7 @@ function count_residues(seq, counts, alphsize)
             counts[seq[x]+1] = counts[seq[x]+1] + 1
         end
     end
-    # print("counts: ", counts)
+    println("counts: ", counts)
     return counts
 end
 
@@ -71,17 +73,17 @@ function copy_masks(source, dest)
 end
 
 function get_base_probs(seq, probs)
-    counts=[]
+    global counts=[]
+    println("length of seq", length(seq))
     for s = 1:length(seq)
         # print("get_base_probs: ", seq[s], counts, alphsize)
-        counts=count_residues(seq[s], counts, alphsize)
+        global counts = count_residues(seq[s], counts, alphsize)
     end
     tot=0
     for x in counts
         tot=tot+x
     end
-    # println("counts: ", counts)
-    # println("tot: ", tot)
+    println("counts in get_base_probs: ", counts)
     for i = 1:alphsize
         push!(probs, counts[i]/tot)
     end

@@ -45,15 +45,10 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
             location = String("$(hit.location) - $(hit.location + motifWidth - 1)")
             motifString = ""
             for w in 0:(motifWidth-1)
-                #print(sequence[i][(hit.location + w)])
-                if((hit.location + w) > length(sequence[i]))
-                    print("hit.location: ", hit.location)
-                end
                 motifString = string(motifString, number_to_DNA(sequence[i][(hit.location + w)]))
             end
             push!(hitFrame, [motifNames[hitsInSequences[i][j].motif], location, strand, motifString, log(hit.score)])
         end
-        println("*** sequence $i")
         display(hitFrame)
     end
 end
@@ -62,7 +57,6 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
     frag_nums = []
     for i = 1:length(seqs)
         t=[]
-
         for j = 1:length(bg_seqs)
             frags=0
             r=0
@@ -76,12 +70,12 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
                         frags=frags+1
                     end
                 end
-                t=vcat(t,frags)
+                push!(t,frags)
             end
             push!(frag_nums,t)
         end
-
     end
+    println("computed frag_num")
     frag_tots = []
     for x in 1:length(frag_nums)
         tot=0
@@ -93,10 +87,12 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
         end
         push!(frag_tots,tot)
     end
+    println("computed frag_tots")
     losses = zeros(length(ds_motifs))
     pValues = []#Vector{Float64}(0,length(ds_motifs))
     shuffles = 1000
     for r = 1:shuffles
+        println("The $r th shuffle")
         r_seqs = []#Vector{Int64}
         b_probs = []#Vector{Float64}
         for s = 1:length(seqs)
@@ -105,9 +101,7 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
             bg_fragment(bg_seqs, temp_seqs, length(seqs[s]), frag_nums[s], frag_tots[s])
             push!(r_seqs,temp_seqs)
             r_seqs[s] = copy_masks(seqs[s], r_seqs[s])
-            # println("r_seq[$s]:", r_seqs[s])
             get_base_probs(r_seqs[s], temp_probs)
-            # println(temp_probs)
             push!(b_probs,temp_probs)
         end
         losses = rand_test(r_seqs, b_probs, ds_motifs, losses)
@@ -145,16 +139,29 @@ function get_hits(seqs,ds_motifs,base_probs,results,hits)
     end
 end
 
-sequenceFileName = "fasta.txt"
-motifFileName = "test.txt"
+
+bg_info=[]
+bg_seqs=[]
+bg_sequenceNames=[]
+(bg_seqs, junk) = get_seqs("hs_chr20 - Copy.mfa")
+sequenceFileName = "hs_dopamine_nr.fa - Copy.txt"
+motifFileName = "jaspar2009core - Copy.txt"
+
+#(bg_seqs, junk) = get_seqs("bg_seqs.txt")
+#sequenceFileName = "fasta.txt"
+#motifFileName = "test.txt"
+
+
 motnum= 1 #temp
 hit_thresh=6 #temp
 
 (singleStrandMotifs, motifNames) = Get_Single_Strand_Motifs(motifFileName)
 doubleStrandMotifs = Get_Double_Strand_Motifs(singleStrandMotifs, true)
+#println(doubleStrandMotifs)
 sequenceNames = []
 sequence = []
 (sequence, sequenceNames) = get_seqs(sequenceFileName)
+#println(sequence[1])
 seqInfo = init_seq_info(sequence)
 base_probs = Vector{Float64}()
 base_probs = get_base_probs(sequence, base_probs)
@@ -166,6 +173,7 @@ results = Vector{result}(undef,length(doubleStrandMotifs))
 hitsInSequences = [Vector{Hit}() for i in 1:length(sequence)]
 for m in 1:length(doubleStrandMotifs)
     sequenceScores = []
+    #println("scanning motif $m")
     for s in 1:length(sequence)
         a = scan_seq(sequence[s], doubleStrandMotifs[m], base_probs, hitsInSequences, s, motnum, hit_thresh)
         push!(sequenceScores, a)
@@ -173,12 +181,10 @@ for m in 1:length(doubleStrandMotifs)
     rawScore = combine_score(sequenceScores)
     results[m] = result(0, rawScore, [], sequenceScores)
 end
-bg_info=[]
-bg_seqs=[]
-bg_sequenceNames=[]
-(bg_seqs, junk) = get_seqs("bg_seqs.txt")
+
 bg_info = vcat(bg_info,init_seq_info(bg_seqs))
-p_vals = shuffle_bgseq(sequence, bg_seqs, doubleStrandMotifs, results)
+println("starting to shuffle!")
+@time p_vals = shuffle_bgseq(sequence, bg_seqs, doubleStrandMotifs, results)
 
 get_hits(sequence, doubleStrandMotifs, base_probs, results, hitsInSequences)
 
