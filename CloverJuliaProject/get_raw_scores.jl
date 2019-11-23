@@ -46,6 +46,9 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
             motifString = ""
             for w in 0:(motifWidth-1)
                 #print(sequence[i][(hit.location + w)])
+                if((hit.location + w) > length(sequence[i]))
+                    print("hit.location: ", hit.location)
+                end
                 motifString = string(motifString, number_to_DNA(sequence[i][(hit.location + w)]))
             end
             push!(hitFrame, [motifNames[hitsInSequences[i][j].motif], location, strand, motifString, log(hit.score)])
@@ -100,15 +103,12 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
             temp_seqs = []
             temp_probs = []
             bg_fragment(bg_seqs, temp_seqs, length(seqs[s]), frag_nums[s], frag_tots[s])
-            # print("length of temp_seqs: $(length(temp_seqs))")
-            # print("temp_seqs: ", temp_seqs)
             push!(r_seqs,temp_seqs)
             r_seqs[s] = copy_masks(seqs[s], r_seqs[s])
             # println("r_seq[$s]:", r_seqs[s])
             get_base_probs(r_seqs[s], temp_probs)
             # println(temp_probs)
             push!(b_probs,temp_probs)
-            # println(b_probs)
         end
         losses = rand_test(r_seqs, b_probs, ds_motifs, losses)
     end
@@ -123,9 +123,7 @@ function rand_test(myseqs, b_probs, motifs, losses)
     for m in 1:length(motifs)
         scores = Vector{Float64}()
         for s in 1:length(myseqs)
-            #println(s, m)
-            # print( myseqs[s],motifs[m], b_probs[s], hitsInSequences)
-            a = scan_seq(myseqs[s], motifs[m], b_probs[s], hitsInSequences, 1, 1, 6)
+            a = scan_seq(myseqs[s], motifs[m], b_probs[s], hitsInSequences, s, m, 6)
             push!(scores,a)
         end
         raw = combine_score(scores)

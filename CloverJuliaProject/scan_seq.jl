@@ -9,8 +9,8 @@ function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thre
     tot_score=0
     m_max=Int64(length(motif)) #m_max is the num of motifs
     for m in 1:m_max
-        pssm = zeros(Float64, (length(motif[1]), 4))#size(motif)[2] is row num
-        row_max = Int64(length(motif[1]))
+        pssm = zeros(Float64, (length(motif[m]), 4))#size(motif)[2] is row num
+        row_max = Int64(length(motif[m]))
         for row in 1:row_max
             for col in 1:4
                 pssm[row,col] = motif[m][row][col]
@@ -28,8 +28,7 @@ function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thre
         end
         #finally, scan the PSSM against the sequence:
         score = 0
-        posns = length(seq) - row_max +1 #last possible beginning point for current motif in seq
-
+        posns = length(seq) - row_max + 1 #last possible beginning point for current motif in seq
         for n in 1:posns
             s=1
             for k in 1:row_max-1
@@ -37,10 +36,7 @@ function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thre
             end
             score += s
             if(log(2,s)>= hit_thresh)
-                # println("hit:", Hit(motnum, m, n, s))
-                # println("hit array at $seqnum: ", hitsInSequences[seqnum])
-                push!(hitsInSequences[seqnum], Hit(motnum, m, n, s))#??
-                # println("hit array at $seqnum: ", hitsInSequences[seqnum])
+                push!(hitsInSequences[seqnum], Hit(motnum, m, n, s))
             end
         end
 
