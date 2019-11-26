@@ -52,12 +52,11 @@ function count_residues(seq, counts, alphsize)#error change seq[[]] to []
     if(counts == nothing || length(counts) < alphsize )
         counts = [0,0,0,0]
     end
-    for x = 1:length(seq)
+    for x in 1:length(seq)
         if seq[x] < UInt(alphsize)
-            counts[seq[x]+1] = counts[seq[x]+1] + 1
+            counts[seq[x]+1] += 1
         end
     end
-    #println("counts: ", counts)
     return counts
 end
 
@@ -72,13 +71,12 @@ function copy_masks(source, dest)
     return dest
 end
 
-function get_base_probs(seq, probs)
-    global counts=[]
-    #println("length of seq", length(seq))
-    for s = 1:length(seq)
-        # print("get_base_probs: ", seq[s], counts, alphsize)
-        global counts = count_residues(seq[s], counts, alphsize)
-    end
+function get_base_probs(seq)
+    probs = []
+    counts=[]
+    #count_residues(seq, counts, alphsize)
+    temp_counts = count_residues(seq, counts, alphsize)
+    counts  = temp_counts
     tot=0
     for x in counts
         tot=tot+x
@@ -90,7 +88,6 @@ function get_base_probs(seq, probs)
     return probs
 end
 
-#dp=Array{Float64}(undef,length(s[1])+1)  # INit dp line
 
 mutable struct result
     motifIndex::Int64
@@ -104,7 +101,7 @@ mutable struct seq_info
     len::Int64
     gc::Float64
 end
-function init_seq_info(seqs)
+function init_seq_info(seqs)#seqs:[[]]
     num = length(seqs)
     len=0
     for s = 1:num
@@ -112,8 +109,10 @@ function init_seq_info(seqs)
     end
     counts=[]
     for s = 1:length(seqs)
-        counts=count_residues(seqs[s], counts, alphsize)
+        temp_counts = count_residues(seqs[s], counts, alphsize)
+        counts  = temp_counts
     end
+    println("in init_seq_info, counts: $counts")
     tot=0
     for x in counts
         tot=tot+x

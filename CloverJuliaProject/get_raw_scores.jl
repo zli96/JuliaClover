@@ -18,13 +18,16 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
     println("\n ************* Over and under represented motifs *************")
     summary = DataFrame(Motif = String[], RawScore = Float64[], PValue = String[])
     for i in 1:length(results)
-        motifName = motifNames[i]
-        motifRawScore = results[i].rawScore
-        pValueAsString = ""
-        for i in results[i].pValues
-            pValueAsString = string(pValueAsString, string(i))
+        if(is_significant(results[i]))
+            motifName = motifNames[i]
+            motifRawScore = results[i].rawScore
+            pValueAsString = ""
+            for j in results[i].pValues
+                pValueAsString = string(pValueAsString, string(j))
+            end
+            push!(summary, [motifName, motifRawScore, pValueAsString])
         end
-        push!(summary, [motifName, motifRawScore, pValueAsString])
+
     end
     display(summary)
     CSV.write("summary.csv", summary)
@@ -95,19 +98,18 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
     println("computed frag_tots")
     losses = zeros(length(ds_motifs))
     pValues = []#Vector{Float64}(0,length(ds_motifs))
-    shuffles = 100
+    shuffles = 2
     for r = 1:shuffles
         println("The $r th shuffle")
         r_seqs = []#Vector{Int64}
         b_probs = []#Vector{Float64}
         for s = 1:length(seqs)
             temp_seqs = []
-            temp_probs = []
             bg_fragment(bg_seqs, temp_seqs, length(seqs[s]), frag_nums[s], frag_tots[s])
             push!(r_seqs,temp_seqs)
             r_seqs[s] = copy_masks(seqs[s], r_seqs[s])
-            get_base_probs(r_seqs[s], temp_probs)
-            push!(b_probs,temp_probs)
+            temp_probs = get_base_probs(r_seqs[s])
+            push!(b_probs, temp_probs)
         end
         losses = rand_test(r_seqs, b_probs, ds_motifs, losses)
     end
@@ -135,10 +137,10 @@ end
 
 function get_hits(seqs,ds_motifs,base_probs,results,hits)
     resize!(hits,length(seqs))
-    for m = 1:length(ds_motifs)
-        if is_significant(results[m])
-            for s = 1:length(seqs)
-                scan_seq(seqs[s], ds_motifs[m], base_probs, hitsInSequences, s, m, 6)
+    for m in 1:length(ds_motifs)
+        if (is_significant(results[m]))
+            for s in 1:length(seqs)
+                scan_seq(seqs[s], ds_motifs[m], base_probs[s], hitsInSequences, s, m, 6)
             end
         end
     end
@@ -168,8 +170,11 @@ sequence = []
 (sequence, sequenceNames) = get_seqs(sequenceFileName)
 #println(sequence[1])
 seqInfo = init_seq_info(sequence)
-base_probs = Vector{Float64}()
-base_probs = get_base_probs(sequence, base_probs)
+base_probs = []
+for s in 1:length(sequence)
+    temp_base_probs = get_base_probs(sequence[s])
+    push!(base_probs, temp_base_probs)
+end
 
 dp=Array{Float64}(undef,length(sequence[1])+1)
 
@@ -180,7 +185,7 @@ for m in 1:length(doubleStrandMotifs)
     sequenceScores = []
     #println("scanning motif $m")
     for s in 1:length(sequence)
-        a = scan_seq(sequence[s], doubleStrandMotifs[m], base_probs, hitsInSequences, s, motnum, hit_thresh)
+        a = scan_seq(sequence[s], doubleStrandMotifs[m], base_probs[s], hitsInSequences, s, motnum, hit_thresh)
         push!(sequenceScores, a)
     end
     rawScore = combine_score(sequenceScores)

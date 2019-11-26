@@ -51,14 +51,14 @@ function get_fasta(fil)
     end
 end
 
-function get_base_probs(seq, probs)#error
-    counts=[]
-    count_residues(seq, counts, alphsize)
-    tot=0
-    for x in counts
-        tot=tot+x
-    end
-    for i = 1:alphsize
-        probs=vcat(probs,counts[i]/tot)
-    end
-end
+# function get_base_probs(seq, probs)#error
+#     counts=[]
+#     count_residues(seq, counts, alphsize)
+#     tot=0
+#     for x in counts
+#         tot=tot+x
+#     end
+#     for i = 1:alphsize
+#         probs=vcat(probs,counts[i]/tot)
+#     end
+# end
