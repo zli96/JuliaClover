@@ -31,14 +31,8 @@ function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thre
         posns = length(seq) - row_max + 1 #last possible beginning point for current motif in seq
         for n in 1:posns
             s=1
-            for k in 1:row_max-1
-                if(seq[n+k]+1 >= 5)
-                    println("seqnum: ", seqnum)
-                    println(seq[n+k])
-                    println("n: ", n)
-                    println("k: $k")
-                end
-                s *= pssm[k, seq[n+k]+1]
+            for k in 1:row_max
+                s *= pssm[k, seq[n+k-1]+1]
             end
             score += s
             if(log(2,s)>= hit_thresh)

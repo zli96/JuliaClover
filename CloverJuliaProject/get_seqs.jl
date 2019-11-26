@@ -51,7 +51,7 @@ function get_fasta(fil)
     end
 end
 
-function get_base_probs(seq, probs)
+function get_base_probs(seq, probs)#error
     counts=[]
     count_residues(seq, counts, alphsize)
     tot=0

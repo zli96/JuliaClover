@@ -4,6 +4,7 @@ include("scan_seq.jl")
 include("main.jl")
 include("combine_score.jl")
 using DataFrames
+using CSV
 
 function print_result(sequenceFileName, motifFileName, seq_info, motifSize, results)
     println("Sequence file: $sequenceFileName ($(seq_info.num) sequences, $(seq_info.len) bp, $(seq_info.gc) GC content)")
@@ -26,6 +27,7 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
         push!(summary, [motifName, motifRawScore, pValueAsString])
     end
     display(summary)
+    CSV.write("summary.csv", summary)
 
     println("*** Motif Instances with Score >= 6:")
     for i in 1:length(hitsInSequences)
@@ -50,6 +52,9 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
             push!(hitFrame, [motifNames[hitsInSequences[i][j].motif], location, strand, motifString, log(hit.score)])
         end
         display(hitFrame)
+        fileName = string("hitInSequence", i)
+        fileName = string(fileName, ".csv")
+        CSV.write(fileName, hitFrame)
     end
 end
 
@@ -90,7 +95,7 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
     println("computed frag_tots")
     losses = zeros(length(ds_motifs))
     pValues = []#Vector{Float64}(0,length(ds_motifs))
-    shuffles = 1000
+    shuffles = 100
     for r = 1:shuffles
         println("The $r th shuffle")
         r_seqs = []#Vector{Int64}

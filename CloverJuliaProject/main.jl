@@ -48,7 +48,7 @@ end
 
 alphsize=4
 pthresh = 0.01
-function count_residues(seq, counts, alphsize)
+function count_residues(seq, counts, alphsize)#error change seq[[]] to []
     if(counts == nothing || length(counts) < alphsize )
         counts = [0,0,0,0]
     end
@@ -57,7 +57,7 @@ function count_residues(seq, counts, alphsize)
             counts[seq[x]+1] = counts[seq[x]+1] + 1
         end
     end
-    println("counts: ", counts)
+    #println("counts: ", counts)
     return counts
 end
 
@@ -74,7 +74,7 @@ end
 
 function get_base_probs(seq, probs)
     global counts=[]
-    println("length of seq", length(seq))
+    #println("length of seq", length(seq))
     for s = 1:length(seq)
         # print("get_base_probs: ", seq[s], counts, alphsize)
         global counts = count_residues(seq[s], counts, alphsize)
@@ -83,7 +83,7 @@ function get_base_probs(seq, probs)
     for x in counts
         tot=tot+x
     end
-    println("counts in get_base_probs: ", counts)
+    #println("counts in get_base_probs: ", counts)
     for i = 1:alphsize
         push!(probs, counts[i]/tot)
     end
@@ -123,6 +123,9 @@ function init_seq_info(seqs)
 end
 
 function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
+    if(length(bg_seqs) == 0)
+        return
+    end
     b = 1 #select which bg seq
     r = rand(1:frag_tot)
     for b in 1:length(bg_seqs)
@@ -132,9 +135,9 @@ function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
         r -= frag_num[b]
     end
 
-    if(b == length(bg_seqs))
-        return
-    end
+    #if(b == length(bg_seqs))
+    #    return
+    #end
 
     # p =  Vector{UInt}()
     posns = length(bg_seqs[b]) - len + 1
@@ -168,6 +171,7 @@ function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
     for i in p:p+len-1
         push!(frag,bg_seqs[b][i])
     end
+    #println("frag: $frag")
     return
 end
 
@@ -178,7 +182,7 @@ function lessThan(h1, h2)
 end
 function is_significant(r)
     for p = 1:length(r.pValues)
-        if (r.pValues[p] > pthresh) && (r.pValues[p] < 1-pthresh)
+        if (r.pValues[p] > pthresh && r.pValues[p] < 1-pthresh)
             return false
         end
     end
