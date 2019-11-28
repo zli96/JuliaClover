@@ -45,7 +45,7 @@ function get_fasta(fil)
                 end
             end
         end
-        titles=vcat(titles,title)
+        push!(titles,title)
         push!(seqs,seq)
     return seqs, titles
     end

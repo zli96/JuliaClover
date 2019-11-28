@@ -18,7 +18,7 @@ function get_fasta(fil)
         for s in eachline(file)
             if s[1]=='>'
                 if title!=""
-                    titles=vcat(titles,title)
+                    push!(titles,title)
                     push!(seqs,seq);seq=[]
                 end
                 title=SubString(s,2)
@@ -32,7 +32,7 @@ function get_fasta(fil)
                 end
             end
         end
-        titles=vcat(titles,title)
+        push!(titles,title)
         push!(seqs,seq)
     return seqs, titles
     end
@@ -41,19 +41,19 @@ end
 function get_seqs(seq_file)
     myseqs=Array{UInt8}[];seq_names=[];n=""
     (myseqs,n)=get_fasta(seq_file)
-    seq_names=vcat(seq_names,n)
+    push!(seq_names,n)
     return myseqs, seq_names
     discard=pop!(myseqs)
 end
 
-alphsize=4
-pthresh = 0.01
-function count_residues(seq, counts, alphsize)#error change seq[[]] to []
-    if(counts == nothing || length(counts) < alphsize )
+const ALPHSIZE=4
+const PTHRESH = 0.01
+function count_residues(seq, counts, ALPHSIZE)#error change seq[[]] to []
+    if(counts == nothing || length(counts) < ALPHSIZE )
         counts = [0,0,0,0]
     end
     for x in 1:length(seq)
-        if seq[x] < UInt(alphsize)
+        if seq[x] < UInt(ALPHSIZE)
             counts[seq[x]+1] += 1
         end
     end
@@ -75,14 +75,14 @@ function get_base_probs(seq)
     probs = []
     counts=[]
     #count_residues(seq, counts, alphsize)
-    temp_counts = count_residues(seq, counts, alphsize)
+    temp_counts = count_residues(seq, counts, ALPHSIZE)
     counts  = temp_counts
     tot=0
     for x in counts
         tot=tot+x
     end
     #println("counts in get_base_probs: ", counts)
-    for i = 1:alphsize
+    for i = 1:ALPHSIZE
         push!(probs, counts[i]/tot)
     end
     return probs
@@ -109,10 +109,10 @@ function init_seq_info(seqs)#seqs:[[]]
     end
     counts=[]
     for s = 1:length(seqs)
-        temp_counts = count_residues(seqs[s], counts, alphsize)
+        temp_counts = count_residues(seqs[s], counts, ALPHSIZE)
         counts  = temp_counts
     end
-    println("in init_seq_info, counts: $counts")
+    # println("in init_seq_info, counts: $counts")
     tot=0
     for x in counts
         tot=tot+x
@@ -147,7 +147,7 @@ function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
         ind = 0
         # println(p," ",len)
         for i = p:p+len
-            if bg_seqs[b][i] == alphsize
+            if bg_seqs[b][i] == ALPHSIZE
                 ind=i
                 break
             end
@@ -181,7 +181,7 @@ function lessThan(h1, h2)
 end
 function is_significant(r)
     for p = 1:length(r.pValues)
-        if (r.pValues[p] > pthresh && r.pValues[p] < 1-pthresh)
+        if (r.pValues[p] > PTHRESH && r.pValues[p] < 1-PTHRESH)
             return false
         end
     end
@@ -191,13 +191,13 @@ end
 
 
 # bg_info = Array{}
-bg_files=[]
-for i = 1: length(bg_files)
-    bg_seqs = Array{Int32}[]
-    junk = Array{String}
-    get_seqs(bg_files[i], bg_seqs, junk)
-    bg_info=vcat(bg_info,init_seq_info(bg_seqs))
-    shuffle_bgseq(bg_seqs)
-end
+# bg_files=[]
+# for i = 1: length(bg_files)
+#     bg_seqs = Array{Int32}[]
+#     junk = Array{String}
+#     get_seqs(bg_files[i], bg_seqs, junk)
+#     bg_info=vcat(bg_info,init_seq_info(bg_seqs))
+#     shuffle_bgseq(bg_seqs)
+# end
 # cts=[0,0,0,0]
 # count_residues(s[1],cts,4)
