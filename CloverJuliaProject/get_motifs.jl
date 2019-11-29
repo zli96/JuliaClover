@@ -1,4 +1,4 @@
-function Get_Single_Strand_Motifs(fileName)
+function Get_Single_Strand_Motifs(fileName, pseudoCount)
     ssPFMs = []
     currentPFM = []
     motifNames = []
@@ -13,7 +13,7 @@ function Get_Single_Strand_Motifs(fileName)
                 #record what has been read so far
                 if(length(currentPFM) > 0)
                     push!(motifNames, title)
-                    currentPFM = Normalize(currentPFM, 0.1)
+                    currentPFM = Normalize(currentPFM, pseudoCount)
                     push!(ssPFMs, currentPFM)
                     currentPFM = []
                 end
@@ -35,7 +35,7 @@ function Get_Single_Strand_Motifs(fileName)
                     println("warning: this line has $(length(counts)) elements")
                 end
                 if(eof(file))
-                    currentPFM = Normalize(currentPFM, 0.1)
+                    currentPFM = Normalize(currentPFM, pseudoCount)
                     push!(ssPFMs, currentPFM)
                     push!(motifNames, title)
                 end
@@ -100,9 +100,3 @@ function Get_Double_Strand_Motifs(singleStrandMotifs, realDoubleStrand)
     end
     return doubleStrandMotifs
 end
-
-
-#singleStrandMotifs = Get_Single_Strand_Motifs("test.txt")
-#display(singleStrandMotifs)
-#doubleStrandMotifs = Get_Double_Strand_Motifs(singleStrandMotifs, true)
-#display(doubleStrandMotifs)

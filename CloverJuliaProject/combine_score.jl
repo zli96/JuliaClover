@@ -1,26 +1,56 @@
 
-using Statistics
+#using Statistics
+#function combine_score1(scores)
+#    combinationScores = []
+#    n = length(scores)
+#    prev = ones(1,n)
+#    current = ones(1,n)
+#    for i in 1:n # get combined score for the scenario where the motif appear in i sequences
+#        if(i == 1)
+#            current[1] = scores[1]
+#            for j in 2:n
+#                current[j] = (scores[j] + (j-i)*current[j-1])/j
+#            end
+#        else
+#            for j in 1:n
+#                if(i > j)
+#                    current[j] = 0
+#                else
+#                    current[j] = (i*scores[j]*prev[(j-1)] + (j-i)*current[j-1])/j
+#                end
+#            end
+#        end
+#        push!(combinationScores, current[n])
+#        prev = deepcopy(current)
+#    end
+#    println("original: $combinationScores")
+#    return mean(combinationScores)
+#end
+
+#a = [0.1,0.2,0.3,0.4,0.1,0.2,0.3,0.3,0.5,0.76]
+#b = combine_score(a)
+#println(b)
+#println("!!!!!!!!!!!!!!!!!!")
+
 function combine_score(scores)
     combinationScores = []
     n = length(scores)
-    for i in 1:n # get combined score for the scenario where the motif appear in i sequences
-        A = ones(i, n) # This is the dp matrix. the A_i_n element in the matrix will give us the final answer
-        for x in 1:i
-            for y in 1:n
-                if(x > y)
-                    A[x, y] = 0
-                elseif(x == 1)
-                    if(y == 1)
-                        A[x, y] = (x * scores[y] * 1 + (y-x) * 0) / y
-                    else
-                        A[x, y] = (x * scores[y] * 1 + (y-x) * A[x,(y-1)]) / y
-                    end
-                else
-                    A[x, y] = (x * scores[y] * A[(x-1),(y-1)] + (y-x) * A[x,(y-1)]) / y
-                end
+    prevCol = zeros(1, n)
+
+    for j in 1:n
+        prevCell = -1
+        currentCell = -1
+        for i in 1:j
+            if(i == 1)
+                currentCell = (scores[j] + (j-i)*prevCol[i])/j
+            else
+                prevCell = currentCell
+                currentCell = (i*scores[j]*prevCol[i-1] + (j-i)*prevCol[i])/j
+                prevCol[i-1] = prevCell
             end
+            #println("prevCell at[$i, $j]: $prevCell")
         end
-        push!(combinationScores, A[i, n])
+        prevCol[j] = currentCell
     end
-    return mean(combinationScores)
+    return mean(prevCol)
 end

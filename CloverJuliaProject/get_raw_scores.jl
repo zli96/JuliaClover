@@ -161,8 +161,9 @@ motifFileName = "jaspar2009core - Copy.txt"
 
 motnum= 1 #temp
 hit_thresh=6 #temp
+pseudoCount = 0.375
 
-(singleStrandMotifs, motifNames) = Get_Single_Strand_Motifs(motifFileName)
+(singleStrandMotifs, motifNames) = Get_Single_Strand_Motifs(motifFileName, pseudoCount)
 doubleStrandMotifs = Get_Double_Strand_Motifs(singleStrandMotifs, true)
 #println(doubleStrandMotifs)
 sequenceNames = []
