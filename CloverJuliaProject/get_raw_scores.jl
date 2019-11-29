@@ -164,20 +164,12 @@ motifFileName = "jaspar2009core - Copy.txt"
 #motifFileName = "test.txt"
 
 
-<<<<<<< HEAD
 motnum= 1 #temp
 hit_thresh=6 #temp
 pseudoCount = 0.375
 
-(singleStrandMotifs, motifNames) = Get_Single_Strand_Motifs(motifFileName, pseudoCount)
-doubleStrandMotifs = Get_Double_Strand_Motifs(singleStrandMotifs, true)
-=======
-const global MOTNUM= 1 #temp
-const global HIT_THRESH=6 #temp
-
-(singleStrandMotifs, motifNames) = @timeit to "ss_motif" Get_Single_Strand_Motifs(motifFileName)
-doubleStrandMotifs = @timeit to "ds_motif" Get_Double_Strand_Motifs(singleStrandMotifs, true)
->>>>>>> ad347dbd68f8df80e5c65f99830a2fd843515c1c
+(singleStrandMotifs, motifNames) = @timeit to "ss_motif" Get_Single_Strand_Motifs(motifFileName, pseudoCount)
+doubleStrandMotifs =  @timeit to "ds_motif" Get_Double_Strand_Motifs(singleStrandMotifs, true)
 #println(doubleStrandMotifs)
 sequenceNames = []
 sequence = []
