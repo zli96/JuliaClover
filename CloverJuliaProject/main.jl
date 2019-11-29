@@ -11,7 +11,9 @@
 #        return UInt8(4)
 #    end
 #end
-
+using Random
+rng= MersenneTwister();
+Random.seed!(rng,1)
 function get_fasta(fil)
     open(fil) do file
     titles=[];title="";seqs=Array{UInt8}[];seq=[]
@@ -126,7 +128,7 @@ function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
         return
     end
     b = 1 #select which bg seq
-    r = rand(1:frag_tot)
+    r = rand(rng,1:frag_tot)
     for b in 1:length(bg_seqs)
         if(frag_num[b]>r)
             break
@@ -140,10 +142,10 @@ function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
 
     # p =  Vector{UInt}()
     posns = length(bg_seqs[b]) - len + 1
-    p = bg_seqs[b][1]+rand(1:posns)
+    p = bg_seqs[b][1]+rand(rng,1:posns)
     flag=true
     while (flag)
-        p = bg_seqs[b][1]+rand(1:posns-1)
+        p = bg_seqs[b][1]+rand(rng,1:posns-1)
         ind = 0
         # println(p," ",len)
         for i = p:p+len

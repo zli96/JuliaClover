@@ -8,7 +8,7 @@ using CSV
 using Traceur
 using TimerOutputs
 const to = TimerOutput()
-
+# Random.seed!(1)
 function print_result(sequenceFileName, motifFileName, seq_info, motifSize, results)
     println("Sequence file: $sequenceFileName ($(seq_info.num) sequences, $(seq_info.len) bp, $(seq_info.gc) GC content)")
     println("Motif file: $motifFileName ($motifSize motifs)")
