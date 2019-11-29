@@ -5,6 +5,9 @@ include("main.jl")
 include("combine_score.jl")
 using DataFrames
 using CSV
+using Traceur
+using TimerOutputs
+const to = TimerOutput()
 
 function print_result(sequenceFileName, motifFileName, seq_info, motifSize, results)
     println("Sequence file: $sequenceFileName ($(seq_info.num) sequences, $(seq_info.len) bp, $(seq_info.gc) GC content)")
@@ -63,14 +66,14 @@ end
 
 function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
     frag_nums = []
-    for i = 1:length(seqs)
+    @simd for i = 1:length(seqs)
         t=[]
-        for j = 1:length(bg_seqs)
+        @simd for j = 1:length(bg_seqs)
             frags=0
             r=0
-            for x in 1:length(bg_seqs[j])
+            @simd for x in 1:length(bg_seqs[j])
                 # global frag_nums
-                if bg_seqs[j][x]==alphsize
+                if bg_seqs[j][x]==ALPHSIZE
                     r=0
                 else
                     r=r+1
@@ -83,11 +86,11 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
             push!(frag_nums,t)
         end
     end
-    println("computed frag_num")
+    # println("computed frag_num")
     frag_tots = []
-    for x in 1:length(frag_nums)
+    @simd for x in 1:length(frag_nums)
         tot=0
-        for y in 1:length(frag_nums[x])
+        @simd for y in 1:length(frag_nums[x])
             tot=tot+frag_nums[x][y]
         end
         if tot==0
@@ -95,23 +98,23 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
         end
         push!(frag_tots,tot)
     end
-    println("computed frag_tots")
+    # println("computed frag_tots")
     losses = zeros(length(ds_motifs))
     pValues = []#Vector{Float64}(0,length(ds_motifs))
     shuffles = 2
-    for r = 1:shuffles
+    @simd for r = 1:shuffles
         println("The $r th shuffle")
         r_seqs = []#Vector{Int64}
         b_probs = []#Vector{Float64}
-        for s = 1:length(seqs)
+        @simd for s = 1:length(seqs)
             temp_seqs = []
-            bg_fragment(bg_seqs, temp_seqs, length(seqs[s]), frag_nums[s], frag_tots[s])
+            @timeit to "bg_fragment" bg_fragment(bg_seqs, temp_seqs, length(seqs[s]), frag_nums[s], frag_tots[s])
             push!(r_seqs,temp_seqs)
-            r_seqs[s] = copy_masks(seqs[s], r_seqs[s])
-            temp_probs = get_base_probs(r_seqs[s])
+            r_seqs[s] = @timeit to "copy_masks" copy_masks(seqs[s], r_seqs[s])
+            temp_probs = @timeit to "get_base_probs" get_base_probs(r_seqs[s])
             push!(b_probs, temp_probs)
         end
-        losses = rand_test(r_seqs, b_probs, ds_motifs, losses)
+        @timeit to "rand_test" rand_test(r_seqs, b_probs, ds_motifs, losses)
     end
 
     for m = 1:length(ds_motifs)
@@ -124,15 +127,14 @@ function rand_test(myseqs, b_probs, motifs, losses)
     for m in 1:length(motifs)
         scores = Vector{Float64}()
         for s in 1:length(myseqs)
-            a = scan_seq(myseqs[s], motifs[m], b_probs[s], hitsInSequences, s, m, 6)
-            push!(scores,a)
+            push!(scores,@timeit to "scan_seq" scan_seq(myseqs[s], motifs[m], b_probs[s], hitsInSequences, s, m, 6))
         end
-        raw = combine_score(scores)
+        raw = @timeit to "combine_score" combine_score(scores)
         if (raw >= results[m].rawScore)#notes:no result[m]
           losses[m]+=1;
       end
     end
-    return losses
+    # return losses
 end
 
 function get_hits(seqs,ds_motifs,base_probs,results,hits)
@@ -150,7 +152,10 @@ end
 bg_info=[]
 bg_seqs=[]
 bg_sequenceNames=[]
-(bg_seqs, junk) = get_seqs("hs_chr20 - Copy.mfa")
+# (bg_seqs, junk) = get_seqs("hs_chr20.mfa")
+# sequenceFileName = "hs_dopamine_nr.fa.txt"
+# motifFileName = "jaspar2009core.txt"
+(bg_seqs, junk) = @timeit to "get_seqs" get_seqs("hs_chr20 - Copy.mfa")
 sequenceFileName = "hs_dopamine_nr.fa - Copy.txt"
 motifFileName = "jaspar2009core - Copy.txt"
 
@@ -159,16 +164,24 @@ motifFileName = "jaspar2009core - Copy.txt"
 #motifFileName = "test.txt"
 
 
+<<<<<<< HEAD
 motnum= 1 #temp
 hit_thresh=6 #temp
 pseudoCount = 0.375
 
 (singleStrandMotifs, motifNames) = Get_Single_Strand_Motifs(motifFileName, pseudoCount)
 doubleStrandMotifs = Get_Double_Strand_Motifs(singleStrandMotifs, true)
+=======
+const global MOTNUM= 1 #temp
+const global HIT_THRESH=6 #temp
+
+(singleStrandMotifs, motifNames) = @timeit to "ss_motif" Get_Single_Strand_Motifs(motifFileName)
+doubleStrandMotifs = @timeit to "ds_motif" Get_Double_Strand_Motifs(singleStrandMotifs, true)
+>>>>>>> ad347dbd68f8df80e5c65f99830a2fd843515c1c
 #println(doubleStrandMotifs)
 sequenceNames = []
 sequence = []
-(sequence, sequenceNames) = get_seqs(sequenceFileName)
+(sequence, sequenceNames) = @timeit to "get_seqs" get_seqs(sequenceFileName)
 #println(sequence[1])
 seqInfo = init_seq_info(sequence)
 base_probs = []
@@ -186,17 +199,18 @@ for m in 1:length(doubleStrandMotifs)
     sequenceScores = []
     #println("scanning motif $m")
     for s in 1:length(sequence)
-        a = scan_seq(sequence[s], doubleStrandMotifs[m], base_probs[s], hitsInSequences, s, motnum, hit_thresh)
+        a = scan_seq(sequence[s], doubleStrandMotifs[m], base_probs[s], hitsInSequences, s, MOTNUM, HIT_THRESH)
         push!(sequenceScores, a)
     end
     rawScore = combine_score(sequenceScores)
     results[m] = result(0, rawScore, [], sequenceScores)
 end
 
-bg_info = vcat(bg_info,init_seq_info(bg_seqs))
+push!(bg_info,init_seq_info(bg_seqs))
 println("starting to shuffle!")
-@time p_vals = shuffle_bgseq(sequence, bg_seqs, doubleStrandMotifs, results)
+p_vals = @timeit to "shuffle bg_seq" shuffle_bgseq(sequence, bg_seqs, doubleStrandMotifs, results)
 
-get_hits(sequence, doubleStrandMotifs, base_probs, results, hitsInSequences)
-
+@timeit to "get_hits" get_hits(sequence, doubleStrandMotifs, base_probs, results, hitsInSequences)
 print_result(sequenceFileName, motifFileName, seqInfo, length(doubleStrandMotifs), results)
+to_flat=TimerOutputs.flatten(to);
+show(to_flat)
