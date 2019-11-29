@@ -32,6 +32,7 @@
 #println(b)
 #println("!!!!!!!!!!!!!!!!!!")
 
+using Statistics
 function combine_score(scores)
     combinationScores = []
     n = length(scores)

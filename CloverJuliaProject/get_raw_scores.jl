@@ -191,7 +191,7 @@ for m in 1:length(doubleStrandMotifs)
     sequenceScores = []
     #println("scanning motif $m")
     for s in 1:length(sequence)
-        a = scan_seq(sequence[s], doubleStrandMotifs[m], base_probs[s], hitsInSequences, s, MOTNUM, HIT_THRESH)
+        a = scan_seq(sequence[s], doubleStrandMotifs[m], base_probs[s], hitsInSequences, s, m, hit_thresh)
         push!(sequenceScores, a)
     end
     rawScore = combine_score(sequenceScores)
