@@ -142,7 +142,14 @@ function get_hits(seqs,ds_motifs,base_probs,results,hits)
     for m in 1:length(ds_motifs)
         if (is_significant(results[m]))
             for s in 1:length(seqs)
+                #if(s == 1)
+                #    println(length(hitsInSequences[1]))
+                #    println(">>>>>>>>>>>>>>>>>>>>>>>>")
+                #end
                 scan_seq(seqs[s], ds_motifs[m], base_probs[s], hitsInSequences, s, m, 6)
+                #if(s==1)
+                #    println(length(hitsInSequences[1]))
+                #end
             end
         end
     end

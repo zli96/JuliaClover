@@ -35,7 +35,7 @@ function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thre
                 s *= pssm[k, seq[n+k-1]+1]
             end
             score += s
-            if(log(2,s)>= hit_thresh)
+            if(log(s)>= hit_thresh && seqnum != 1)
                 push!(hitsInSequences[seqnum], Hit(motnum, m, n, s))
             end
         end
