@@ -1,16 +1,3 @@
-#function DNA_to_number(c)
-#    if c=='a' || c=='A'
-#        return UInt8(0)
-#    elseif c=='c' || c=='C'
-#        return UInt8(1)
-#    elseif c=='g' || c=='G'
-#        return UInt8(2)
-#    elseif c=='t' || c=='T'
-#        return UInt8(3)
-#    else
-#        return UInt8(4)
-#    end
-#end
 using Random
 rng= MersenneTwister();
 Random.seed!(rng,1)
@@ -93,15 +80,15 @@ end
 
 mutable struct result
     motifIndex::Int64
-    rawScore::Float64
-    pValues::Array{Float64, 1}
-    seqScores::Array{Float64, 1}
+    rawScore::Float32
+    pValues::Array{Float32, 1}
+    seqScores::Array{Float32, 1}
 end
 
 mutable struct seq_info
     num::Int64
     len::Int64
-    gc::Float64
+    gc::Float32
 end
 function init_seq_info(seqs)#seqs:[[]]
     num = length(seqs)
@@ -176,11 +163,6 @@ function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
     return
 end
 
-
-
-function lessThan(h1, h2)
-    return h1.location < h2.location
-end
 function is_significant(r)
     for p = 1:length(r.pValues)
         if (r.pValues[p] > PTHRESH && r.pValues[p] < 1-PTHRESH)

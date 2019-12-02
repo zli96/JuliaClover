@@ -34,9 +34,8 @@
 
 using Statistics
 function combine_score(scores)
-    combinationScores = []
     n = length(scores)
-    prevCol = zeros(1, n)
+    prevCol = zeros(Float32, 1, n)
 
     for j in 1:n
         prevCell = -1

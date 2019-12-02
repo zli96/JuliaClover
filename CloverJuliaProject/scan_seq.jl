@@ -1,47 +1,41 @@
 struct Hit
     motif::Int64 #index of motif
     strand::Int64 #0 or 1: palindromes??
-    location::Int64
-    score::Float64
+    location::Int32
+    score::Float32
 end
 
 function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thresh)
-    tot_score::Float64=0
-    m_max::Int64=length(motif) #m_max is the num of motifs
+    tot_score::Float32=0
+    m_max::Int64 = length(motif) #m_max is the num of motifs
     for m in 1:m_max
-        pssm = zeros(Float64, (length(motif[m]), 4))#size(motif)[2] is row num
+        pssm = deepcopy(motif[m])
         row_max = length(motif[m])
-        @fastmath @simd for row in 1:row_max
-            @fastmath @simd for col in 1:4
-                pssm[row,col] = motif[m][row][col]
-            end
-        end
 
         if(row_max > length(seq))
             continue
         end
 
         @fastmath @simd for r in 1:row_max
-            @fastmath @simd for c in 1:4
-                pssm[r,c] /= b_probs[c]
+            @simd for c in 1:4
+                @fastmath pssm[r][c] /= b_probs[c]
             end
         end
+
         #finally, scan the PSSM against the sequence:
-        score::Float64 = 0
+        score::Float32 = 0
         posns = length(seq) - row_max + 1 #last possible beginning point for current motif in seq
-        @fastmath @simd for n in 1:posns
+        for n in 1:posns
             s=1
-            @fastmath @simd for k in 1:row_max
-                s *= pssm[k, seq[n+k-1]+1]
+            for k in 1:row_max
+                @fastmath s *= pssm[k][seq[n+k-1]+1]
             end
             score += s
-            if(log(s)>= hit_thresh && seqnum != 1)
+            if(log(s) >= hit_thresh && seqnum != -1)
                 push!(hitsInSequences[seqnum], Hit(motnum, m, n, s))
             end
         end
-
-        tot_score += (score/posns/length(motif))
-
+        @fastmath tot_score += (score/posns/m_max)
     end
    return tot_score
 end

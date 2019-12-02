@@ -8,7 +8,7 @@ using CSV
 using Traceur
 using TimerOutputs
 const to = TimerOutput()
-# Random.seed!(1)
+Random.seed!(1)
 function print_result(sequenceFileName, motifFileName, seq_info, motifSize, results)
     println("Sequence file: $sequenceFileName ($(seq_info.num) sequences, $(seq_info.len) bp, $(seq_info.gc) GC content)")
     println("Motif file: $motifFileName ($motifSize motifs)")
@@ -22,13 +22,13 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
     summary = DataFrame(Motif = String[], RawScore = Float64[], PValue = String[])
     for i in 1:length(results)
         if(is_significant(results[i]))
-            motifName = motifNames[i]
+            motifName = motifNames[results[i].motifIndex]
             motifRawScore = results[i].rawScore
             pValueAsString = ""
             for j in results[i].pValues
                 pValueAsString = string(pValueAsString, string(j))
             end
-            push!(summary, [motifName, motifRawScore, pValueAsString])
+            push!(summary, [motifName, log(motifRawScore), pValueAsString])
         end
 
     end
@@ -38,6 +38,7 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
     println("*** Motif Instances with Score >= 6:")
     for i in 1:length(hitsInSequences)
         hitFrame = DataFrame(Motif = String[], Location = String[], Strand = String[], Sequence = String[], Score = Float64[])
+        println("hitsInSequence $i length: $(length(hitsInSequences[i]))")
         for j in 1:length(hitsInSequences[i])
             hit = hitsInSequences[i][j]
             strand = ""
@@ -66,6 +67,7 @@ end
 
 function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
     frag_nums = []
+    println("Analyzing background sequences...")
     @simd for i = 1:length(seqs)
         t=[]
         @simd for j = 1:length(bg_seqs)
@@ -81,10 +83,10 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
                         frags=frags+1
                     end
                 end
-                push!(t,frags)
             end
-            push!(frag_nums,t)
+            push!(t,frags)
         end
+        push!(frag_nums,t)
     end
     # println("computed frag_num")
     frag_tots = []
@@ -101,7 +103,7 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
     # println("computed frag_tots")
     losses = zeros(length(ds_motifs))
     pValues = []#Vector{Float64}(0,length(ds_motifs))
-    shuffles = 2
+    shuffles = 200
     @simd for r = 1:shuffles
         println("The $r th shuffle")
         r_seqs = []#Vector{Int64}
@@ -118,7 +120,7 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
     end
 
     for m = 1:length(ds_motifs)
-        push!(results[m].pValues,losses[m]/shuffles)
+        push!(results[m].pValues, losses[m]/shuffles)
     end
     # return pValues
 end
@@ -127,14 +129,13 @@ function rand_test(myseqs, b_probs, motifs, losses)
     for m in 1:length(motifs)
         scores = Vector{Float64}()
         for s in 1:length(myseqs)
-            push!(scores,@timeit to "scan_seq" scan_seq(myseqs[s], motifs[m], b_probs[s], hitsInSequences, s, m, 6))
+            push!(scores,@timeit to "scan_seq" scan_seq(myseqs[s], motifs[m], b_probs[s], hitsInSequences, -1, m, 6))
         end
         raw = @timeit to "combine_score" combine_score(scores)
         if (raw >= results[m].rawScore)#notes:no result[m]
           losses[m]+=1;
       end
     end
-    # return losses
 end
 
 function get_hits(seqs,ds_motifs,base_probs,results,hits)
@@ -142,14 +143,7 @@ function get_hits(seqs,ds_motifs,base_probs,results,hits)
     for m in 1:length(ds_motifs)
         if (is_significant(results[m]))
             for s in 1:length(seqs)
-                #if(s == 1)
-                #    println(length(hitsInSequences[1]))
-                #    println(">>>>>>>>>>>>>>>>>>>>>>>>")
-                #end
-                scan_seq(seqs[s], ds_motifs[m], base_probs[s], hitsInSequences, s, m, 6)
-                #if(s==1)
-                #    println(length(hitsInSequences[1]))
-                #end
+                scan_seq(seqs[s], ds_motifs[m], base_probs[s], hitsInSequences, s, m, hit_thresh)
             end
         end
     end
@@ -198,7 +192,7 @@ for m in 1:length(doubleStrandMotifs)
     sequenceScores = []
     #println("scanning motif $m")
     for s in 1:length(sequence)
-        a = scan_seq(sequence[s], doubleStrandMotifs[m], base_probs[s], hitsInSequences, s, m, hit_thresh)
+        a = scan_seq(sequence[s], doubleStrandMotifs[m], base_probs[s], hitsInSequences, -1, m, hit_thresh)
         push!(sequenceScores, a)
     end
     rawScore = combine_score(sequenceScores)
