@@ -13,6 +13,7 @@ function Get_Single_Strand_Motifs(fileName, pseudoCount)
                 #record what has been read so far
                 if(size(currentPFM, 1) > 0)
                     push!(motifNames, title)
+                    #display(currentPFM)
                     currentPFM = Normalize(currentPFM, pseudoCount)
                     push!(ssPFMs, currentPFM)
                     currentPFM = zeros(Float64, 0, 4)
@@ -24,9 +25,9 @@ function Get_Single_Strand_Motifs(fileName, pseudoCount)
             else
                 frequencies = split(line, r"\s")
                 if(length(frequencies) == 4) #each line should only have 4 numbers seperated by spaces
-                    map(x->parse(Float64, x), frequencies)
+                    frequencies = map(x->parse(Float64, x), frequencies)
                     frequencies = reshape(frequencies, 1, 4)
-                    vcat(currentPFM, frequencies)
+                    currentPFM = vcat(currentPFM, frequencies)
                 else
                     println(line)
                     println("warning: this line has $(length(counts)) elements")

@@ -50,7 +50,7 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
                 print("Something wrong here! hit#: $j, sequence#: $i")
             end
 
-            motifWidth = length(singleStrandMotifs[hit.motif])
+            motifWidth = size(singleStrandMotifs[hit.motif],1)
             location = String("$(hit.location) - $(hit.location + motifWidth - 1)")
             motifString = ""
             for w in 0:(motifWidth-1)
@@ -103,7 +103,7 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
     # println("computed frag_tots")
     losses = zeros(length(ds_motifs))
     pValues = []#Vector{Float64}(0,length(ds_motifs))
-    shuffles = 200
+    shuffles = 2
     @simd for r = 1:shuffles
         println("The $r th shuffle")
         r_seqs = []#Vector{Int64}
@@ -170,8 +170,9 @@ hit_thresh=6 #temp
 pseudoCount = 0.375
 
 (singleStrandMotifs, motifNames) = @timeit to "ss_motif" Get_Single_Strand_Motifs(motifFileName, pseudoCount)
+#display(singleStrandMotifs[1])
 doubleStrandMotifs =  @timeit to "ds_motif" Get_Double_Strand_Motifs(singleStrandMotifs, true)
-#println(doubleStrandMotifs)
+#display(doubleStrandMotifs[1])
 sequenceNames = []
 sequence = []
 (sequence, sequenceNames) = @timeit to "get_seqs" get_seqs(sequenceFileName)

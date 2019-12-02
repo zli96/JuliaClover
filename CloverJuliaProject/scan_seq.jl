@@ -10,7 +10,7 @@ function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thre
     m_max::Int64 = length(motif) #m_max is the num of motifs
     for m in 1:m_max
         pssm = deepcopy(motif[m])
-        row_max = length(motif[m])
+        row_max = size(motif[m], 1)
 
         if(row_max > length(seq))
             continue
@@ -18,7 +18,7 @@ function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thre
 
         @fastmath @simd for r in 1:row_max
             @simd for c in 1:4
-                @fastmath pssm[r][c] /= b_probs[c]
+                @fastmath pssm[r, c] /= b_probs[c]
             end
         end
 
@@ -28,7 +28,7 @@ function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thre
         for n in 1:posns
             s=1
             for k in 1:row_max
-                @fastmath s *= pssm[k][seq[n+k-1]+1]
+                @fastmath s *= pssm[k, seq[n+k-1]+1]
             end
             score += s
             if(log(s) >= hit_thresh && seqnum != -1)
