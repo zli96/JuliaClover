@@ -1,6 +1,7 @@
+include("globalVariable.jl")
 using Random
 rng= MersenneTwister();
-Random.seed!(rng,1)
+Random.seed!(rng, randomSeed)
 function get_fasta(fil)
     open(fil) do file
     titles=[];title="";seqs=Array{UInt8}[];seq=[]
@@ -35,8 +36,6 @@ function get_seqs(seq_file)
     discard=pop!(myseqs)
 end
 
-const ALPHSIZE=4
-const PTHRESH = 0.01
 function count_residues(seq, counts, ALPHSIZE)#error change seq[[]] to []
     if(counts == nothing || length(counts) < ALPHSIZE )
         counts = [0,0,0,0]
@@ -48,8 +47,6 @@ function count_residues(seq, counts, ALPHSIZE)#error change seq[[]] to []
     end
     return counts
 end
-
-
 
 function copy_masks(source, dest)
     for i in 1:length(source)

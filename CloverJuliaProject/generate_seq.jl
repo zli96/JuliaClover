@@ -1,6 +1,6 @@
 using Random
 rng= MersenneTwister();
-Random.seed!(rng,1)
+Random.seed!(rng, randomSeed)
 # t - no of dna samples, m - motif, l - length of each sample in dna
 function dna_generator(t,m,l)
     out = Array{String}(undef,t)

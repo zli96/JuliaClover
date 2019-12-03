@@ -3,12 +3,12 @@ include("get_seqs.jl")
 include("scan_seq.jl")
 include("main.jl")
 include("combine_score.jl")
+include("globalVariable.jl")
 using DataFrames
 using CSV
 using Traceur
 using TimerOutputs
-const to = TimerOutput()
-Random.seed!(1)
+
 function print_result(sequenceFileName, motifFileName, seq_info, motifSize, results)
     println("Sequence file: $sequenceFileName ($(seq_info.num) sequences, $(seq_info.len) bp, $(seq_info.gc) GC content)")
     println("Motif file: $motifFileName ($motifSize motifs)")
@@ -32,7 +32,7 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
         end
 
     end
-    display(summary)
+    show(summary)
     CSV.write("summary.csv", summary)
 
     println("*** Motif Instances with Score >= 6:")
@@ -58,11 +58,19 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
             end
             push!(hitFrame, [motifNames[hitsInSequences[i][j].motif], location, strand, motifString, log(hit.score)])
         end
-        display(hitFrame)
+        show(hitFrame)
+        println("")
         fileName = string("hitInSequence", i)
         fileName = string(fileName, ".csv")
         CSV.write(fileName, hitFrame)
     end
+
+    println("Background sequence file: $bgSeqFileName")
+    println("Randomizations: $shuffles")
+    println("P-value threshhold: $PTHRESH")
+    println("Motif score threshhold: $hit_thresh")
+    println("Pseudocount: $pseudoCount")
+    println("Random seed: $randomSeed")
 end
 
 function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
@@ -103,7 +111,6 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
     # println("computed frag_tots")
     losses = zeros(length(ds_motifs))
     pValues = []#Vector{Float64}(0,length(ds_motifs))
-    shuffles = 2
     @simd for r = 1:shuffles
         println("The $r th shuffle")
         r_seqs = []#Vector{Int64}
@@ -150,25 +157,13 @@ function get_hits(seqs,ds_motifs,base_probs,results,hits)
 end
 
 
+
+
+Random.seed!(randomSeed)
 bg_info=[]
 bg_seqs=[]
 bg_sequenceNames=[]
-# (bg_seqs, junk) = get_seqs("hs_chr20.mfa")
-# sequenceFileName = "hs_dopamine_nr.fa.txt"
-# motifFileName = "jaspar2009core.txt"
-(bg_seqs, junk) = @timeit to "get_seqs" get_seqs("hs_chr20 - Copy.mfa")
-sequenceFileName = "hs_dopamine_nr.fa - Copy.txt"
-motifFileName = "jaspar2009core - Copy.txt"
-
-#(bg_seqs, junk) = get_seqs("bg_seqs.txt")
-#sequenceFileName = "fasta.txt"
-#motifFileName = "test.txt"
-
-
-motnum= 1 #temp
-hit_thresh=6 #temp
-pseudoCount = 0.375
-
+(bg_seqs, junk) = @timeit to "get_seqs" get_seqs(bgSeqFileName)
 (singleStrandMotifs, motifNames) = @timeit to "ss_motif" Get_Single_Strand_Motifs(motifFileName, pseudoCount)
 #display(singleStrandMotifs[1])
 doubleStrandMotifs =  @timeit to "ds_motif" Get_Double_Strand_Motifs(singleStrandMotifs, true)
@@ -184,7 +179,7 @@ for s in 1:length(sequence)
     push!(base_probs, temp_base_probs)
 end
 
-dp=Array{Float64}(undef,length(sequence[1])+1)
+#dp=Array{Float64}(undef,length(sequence[1])+1)
 
 results = Vector{result}(undef,length(doubleStrandMotifs))
 
@@ -197,6 +192,7 @@ for m in 1:length(doubleStrandMotifs)
         push!(sequenceScores, a)
     end
     rawScore = combine_score(sequenceScores)
+    #println("motif $m: ", rawScore)
     results[m] = result(0, rawScore, [], sequenceScores)
 end
 

@@ -8,6 +8,7 @@ end
 function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thresh)
     tot_score::Float32=0
     m_max::Int64 = length(motif) #m_max is the num of motifs
+    b_probs = reshape(b_probs, 1, 4)
     for m in 1:m_max
         pssm = deepcopy(motif[m])
         row_max = size(motif[m], 1)
@@ -16,11 +17,13 @@ function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thre
             continue
         end
 
-        @fastmath @simd for r in 1:row_max
-            @simd for c in 1:4
-                @fastmath pssm[r, c] /= b_probs[c]
-            end
-        end
+        pssm = broadcast(/, pssm, b_probs)
+
+        #@simd for r in 1:row_max
+        #    @simd for c in 1:4
+        #        @fastmath pssm[r, c] /= b_probs[c]
+        #    end
+        #end
 
         #finally, scan the PSSM against the sequence:
         score::Float32 = 0
@@ -31,7 +34,7 @@ function scan_seq(seq, motif, b_probs, hitsInSequences, seqnum, motnum, hit_thre
                 @fastmath s *= pssm[k, seq[n+k-1]+1]
             end
             score += s
-            if(log(s) >= hit_thresh && seqnum != -1)
+            if(seqnum != -1 && log(s) >= hit_thresh)
                 push!(hitsInSequences[seqnum], Hit(motnum, m, n, s))
             end
         end
