@@ -1,9 +1,8 @@
 const global randomSeed = 1
-const global to = TimerOutput()
 const global hit_thresh = 6 #temp
 const global pseudoCount = 0.375
 const global shuffles = 25
-const global ALPHSIZE=4
+const global ALPHSIZE= 4
 const global PTHRESH = 0.01
 const global bgSeqFileName = "hs_chr20 - Copy.mfa"
 const global motifFileName = "jaspar2009core - Copy.txt"

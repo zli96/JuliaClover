@@ -74,35 +74,39 @@ function print_result(sequenceFileName, motifFileName, seq_info, motifSize, resu
 end
 
 function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
-    frag_nums = []
+    fragNums = []
     println("Analyzing background sequences...")
-    @simd for i = 1:length(seqs)
+    for i in 1:length(seqs)
         t=[]
-        @simd for j = 1:length(bg_seqs)
+        for j in 1:length(bg_seqs)
             frags=0
-            r=0
-            @simd for x in 1:length(bg_seqs[j])
-                # global frag_nums
-                if bg_seqs[j][x]==ALPHSIZE
-                    r=0
-                else
-                    r=r+1
-                    if r>length(seqs[i])
-                        frags=frags+1
-                    end
-                end
+            r=length(bg_seqs[j])
+            if(r > length(seqs[i]))
+                frags = r - length(seqs[i])
             end
+            #@simd for x in 1:length(bg_seqs[j])
+                # global fragNums
+                #if bg_seqs[j][x]==ALPHSIZE
+                #    r=0
+                #else
+                    #r=r+1
+                    #if r>length(seqs[i])
+                    #    frags=frags+1
+                    #end
+                #end
+            #end
             push!(t,frags)
         end
-        push!(frag_nums,t)
+        push!(fragNums,t)
     end
     # println("computed frag_num")
     frag_tots = []
-    @simd for x in 1:length(frag_nums)
-        tot=0
-        @simd for y in 1:length(frag_nums[x])
-            tot=tot+frag_nums[x][y]
-        end
+    for x in 1:length(fragNums)
+        #tot=0
+        tot = sum(fragNums[x])
+        #for y in 1:length(fragNums[x])
+        #    tot=tot+fragNums[x][y]
+        #end
         if tot==0
             print("\nDie function : Can't get fragments of control sequences to match all target sequences.")
         end
@@ -117,7 +121,7 @@ function shuffle_bgseq(seqs,bg_seqs,ds_motifs,results)
         b_probs = []#Vector{Float64}
         @simd for s = 1:length(seqs)
             temp_seqs = []
-            @timeit to "bg_fragment" bg_fragment(bg_seqs, temp_seqs, length(seqs[s]), frag_nums[s], frag_tots[s])
+            @timeit to "bg_fragment" bg_fragment(bg_seqs, temp_seqs, length(seqs[s]), fragNums[s], frag_tots[s])
             push!(r_seqs,temp_seqs)
             r_seqs[s] = @timeit to "copy_masks" copy_masks(seqs[s], r_seqs[s])
             temp_probs = @timeit to "get_base_probs" get_base_probs(r_seqs[s])
@@ -163,6 +167,7 @@ Random.seed!(randomSeed)
 bg_info=[]
 bg_seqs=[]
 bg_sequenceNames=[]
+const global to = TimerOutput()
 (bg_seqs, junk) = @timeit to "get_seqs" get_seqs(bgSeqFileName)
 (singleStrandMotifs, motifNames) = @timeit to "ss_motif" Get_Single_Strand_Motifs(motifFileName, pseudoCount)
 #display(singleStrandMotifs[1])
