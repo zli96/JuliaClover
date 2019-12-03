@@ -126,25 +126,28 @@ function bg_fragment(bg_seqs, frag, len, frag_num, frag_tot)
 
     # p =  Vector{UInt}()
     posns = length(bg_seqs[b]) - len + 1
-    p = bg_seqs[b][1]+rand(rng,1:posns)
-    flag=true
-    while (flag)
-        p = bg_seqs[b][1]+rand(rng,1:posns-1)
-        ind = 0
-        # println(p," ",len)
-        for i = p:p+len
-            if bg_seqs[b][i] == ALPHSIZE
-                ind=i
-                break
-            end
-            if i==p+len
-                ind=i
-            end
-        end
-        if ind == p+len
-            flag= false
-        end
-    end
+    #p = bg_seqs[b][1]+rand(rng,1:posns)
+    p = rand(rng,1:posns)
+    println("bgfrag starting position: ", p)
+    # we don't support the bg_seq having any masked character yet so I think this is not necessary
+    #flag=true
+    #while (flag)
+    #    p = bg_seqs[b][1]+rand(rng,1:posns-1)
+    #    ind = 0
+    #    # println(p," ",len)
+    #    for i = p:p+len
+    #        if bg_seqs[b][i] == ALPHSIZE
+    #            ind=i
+    #            break
+    #        end
+    #        if i==p+len
+    #            ind=i
+    #        end
+    #    end
+    #    if ind == p+len
+    #        flag= false
+    #    end
+    #end
 
     # push!(p,bg_seqs[b][1]+rand(1:posns))
     # for i in 1:length(p)+len
