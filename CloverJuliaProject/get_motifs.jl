@@ -1,6 +1,7 @@
+include("globalVariable.jl")
 function Get_Single_Strand_Motifs(fileName, pseudoCount)
     ssPFMs = []
-    currentPFM = zeros(Float32, 0, 4)
+    currentPFM = zeros(Float32, 0, ALPHSIZE)
     motifNames = []
     open(fileName) do file
         title = ""
@@ -16,7 +17,7 @@ function Get_Single_Strand_Motifs(fileName, pseudoCount)
                     #display(currentPFM)
                     currentPFM = Normalize(currentPFM, pseudoCount)
                     push!(ssPFMs, currentPFM)
-                    currentPFM = zeros(Float32, 0, 4)
+                    currentPFM = zeros(Float32, 0, ALPHSIZE)
                 end
                 #update the current title after the old one is recorded
                 title = line[2:length(line)]
@@ -24,9 +25,9 @@ function Get_Single_Strand_Motifs(fileName, pseudoCount)
                 #do nothing since this line is comment
             else
                 frequencies = split(line, r"\s")
-                if(length(frequencies) == 4) #each line should only have 4 numbers seperated by spaces
+                if(length(frequencies) == ALPHSIZE) #each line should only have ALPHSIZE numbers seperated by spaces
                     frequencies = map(x->parse(Float32, x), frequencies)
-                    frequencies = reshape(frequencies, 1, 4)
+                    frequencies = reshape(frequencies, 1, ALPHSIZE)
                     currentPFM = vcat(currentPFM, frequencies)
                 else
                     println(line)
