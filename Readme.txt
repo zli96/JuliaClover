@@ -15,5 +15,3 @@ Shuffle: defines the number of shuffles that are conducted, this will affect the
 
 How to interpret the results:
 A summary will be generated as a csv file recording all the significant motifs identified in the sequence along with their pvalues. For each sequence, a CSV file will be generated recording all motifs identified in the sequence along with the location of the motif and the nucleotides in the sequence at the location. Command line output are the same as the csv output except that in command line you will also be able to see a restatement of the input variable used. And if there are too many motifs identified, the results table might be abbreviated.
-
-small changes
